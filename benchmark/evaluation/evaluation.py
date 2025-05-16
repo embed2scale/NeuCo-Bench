@@ -5,11 +5,11 @@ from datetime import datetime
 from pathlib import Path
 import torch
 
-from benchmark.data.embeddings import load_submission
-from benchmark.data.labels import get_annotations
-from benchmark.evaluation.linear_probing import cross_validate
-from benchmark.evaluation.results import save_results, summarize_runs
-from benchmark.evaluation.utils import fix_all_seeds
+from data.embeddings import load_submission
+from data.labels import get_annotations
+from evaluation.linear_probing import cross_validate
+from evaluation.results import save_results, summarize_runs
+from evaluation.utils import fix_all_seeds
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)

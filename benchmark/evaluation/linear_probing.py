@@ -15,9 +15,9 @@ from sklearn.model_selection import ShuffleSplit
 from torchmetrics.classification import BinaryF1Score
 from torchmetrics.regression import R2Score
 
-from benchmark.data.embeddings import EmbeddingDataset
-from benchmark.evaluation.metrics import classification_metrics, regression_metrics
-from benchmark.evaluation.visualisations import save_loss_curve, plot_confusion_matrix, plot_regression_scatter
+from data.embeddings import EmbeddingDataset
+from evaluation.metrics import classification_metrics, regression_metrics
+from evaluation.visualisations import save_loss_curve, plot_confusion_matrix, plot_regression_scatter
 
 logger = logging.getLogger(__name__)
 
