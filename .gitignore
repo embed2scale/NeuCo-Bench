@@ -1,0 +1,6 @@
+**/run_eval.sh
+run_eval.sh
+**/run_main.sh
+run_main.sh
+**/__pycache__/
+**/*.pyc

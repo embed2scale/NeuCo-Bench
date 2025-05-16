@@ -1,0 +1,10 @@
+embedding_dim: 1024
+batch_size: 64
+epochs: 20
+learning_rate: 0.001
+k_folds: 40 # Eval: 200
+standardize_embeddings: true
+normalize_labels: true
+enable_plots: false
+update_leaderboard: false
+task_filter: false #eg. ["biomass_mean", "biomass_std"]
