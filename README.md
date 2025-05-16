@@ -25,7 +25,7 @@ Built for multi-modal, multi-temporal datasets such as Earth Observation (EO), i
 git clone https://github.com/embed2scale/NeuCo-Bench.git && cd NeuCo-Bench
 pip install -r requirements.txt
 
-python benchmark.evaluation.evaluation.py \
+python -m benchmark.evaluation.evaluation.py \
   --annotation_path path/to/annotation_folder \
   --submission_file path/to/submission_file.csv \
   --output_dir path/to/results \
