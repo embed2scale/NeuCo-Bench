@@ -47,6 +47,8 @@ python main.py \
 - `--method_name` Identifier for your method, used in filenames and leaderboard entries.  
 - `--phase` A name that groups a set of evaluation runs for joint ranking. Results for each phase are stored in a separate subfolder under `output_dir`. 
 
+If you'd like to avoid utilization of GPUs, run `CUDA_VISIBLE_DEVICES=''` before execution.
+
 ## Overview
 
 NeuCo-Bench shifts from pixel-level reconstruction to task-oriented semantic evaluation. It measures how well embeddings preserve information for EO tasks under practical size constraints.
