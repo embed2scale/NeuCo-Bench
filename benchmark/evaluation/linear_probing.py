@@ -5,6 +5,7 @@ import copy
 import logging
 from dataclasses import dataclass
 from pathlib import Path
+from tqdm import tqdm
 
 import numpy as np
 import pandas as pd
@@ -225,8 +226,8 @@ def cross_validate(
     )
     fold_results: list[FoldResult] = []
 
-    for fold_index, (train_idx, test_idx) in enumerate(splitter.split(dataset)):
-        logger.info("Fold %d/%d", fold_index + 1, n_splits)
+    for fold_index, (train_idx, test_idx) in tqdm(enumerate(splitter.split(dataset)), total=n_splits):
+        #logger.info("Fold %d/%d", fold_index + 1, n_splits)
 
         train_loader = DataLoader(
             dataset,
