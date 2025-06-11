@@ -22,10 +22,16 @@ Built for multi-modal, multi-temporal datasets such as Earth Observation (EO), i
 ## Quickstart
 
 ```bash
+# start from fresh environment (skip if not needed)
+micromamba create -n neuco-bench -c conda-forge python=3.11
+micromamba activate neuco-bench
+
+# clone NeuCo-Bench and install requirements
 git clone https://github.com/embed2scale/NeuCo-Bench.git
 cd NeuCo-Bench/benchmark
 pip install -r ../requirements.txt
 
+# run standalone NeuCo-Bench evaluation script
 python main.py \
   --annotation_path path/to/annotation_folder \
   --submission_file path/to/submission_file.csv \
@@ -40,7 +46,9 @@ python main.py \
 - `--output_dir` Destination for per-task reports, plots, and aggregated benchmark results.  
 - `--config` YAML file specifying cross-validation settings and logging options. See provided sample config.  
 - `--method_name` Identifier for your method, used in filenames and leaderboard entries.  
-- `--phase` A name that groups a set of evaluation runs for joint ranking. Results for each phase are stored in a separate subfolder under `output_dir`.  
+- `--phase` A name that groups a set of evaluation runs for joint ranking. Results for each phase are stored in a separate subfolder under `output_dir`. 
+
+If you'd like to avoid utilization of GPUs, run `CUDA_VISIBLE_DEVICES=''` before execution.
 
 ## Overview
 
