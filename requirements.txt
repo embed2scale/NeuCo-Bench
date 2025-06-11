@@ -1,4 +1,5 @@
 matplotlib==3.10.1
+numcodecs==0.15.1
 numpy==2.2.5
 pandas==2.2.3
 PyYAML==6.0.2
@@ -11,3 +12,4 @@ torchmetrics==1.7.1
 torchvision==0.21.0
 tqdm==4.67.1
 xarray==2024.3.0
+zarr==2.18.0

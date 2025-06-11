@@ -22,7 +22,8 @@ Built for multi-modal, multi-temporal datasets such as Earth Observation (EO), i
 ## Quickstart
 
 ```bash
-git clone https://github.com/embed2scale/NeuCo-Bench.git && cd NeuCo-Bench/benchmark
+git clone https://github.com/embed2scale/NeuCo-Bench.git
+cd NeuCo-Bench/benchmark
 pip install -r ../requirements.txt
 
 python main.py \
@@ -67,7 +68,7 @@ The dataset consists of two folders:
   Holds annotation files for each downstream task.
 
 To run NeuCo-Bench on the SSL4EO-S12-downstream dataset, you need both `data/` and `labels/`.  
-See the `examples/` to see how to load the data as a torch dataset.
+See the `examples/` to see how to load the data as a torch dataset. If you experience data-loading errors, verify that `zarr==2.18.0` is used.
 
 
 
@@ -83,7 +84,7 @@ Example scripts are provided in the `examples/` directory.
 After generating embeddings, evaluate with:
 
 ```bash
-python evaluation.py \
+python main.py \
   --annotation_path path/to/annotation_folder \
   --submission_file path/to/submission_file.csv \
   --output_dir path/to/results \
