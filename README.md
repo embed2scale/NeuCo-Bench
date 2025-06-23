@@ -2,12 +2,13 @@
 
 **Licence**: Apache-2.0
 
-*Originally developed to evaluate challenge submissions in the 2025 EARTHVISION Challenge at CVPR ([competition details](https://www.grss-ieee.org/events/earthvision-2025/?tab=challenge)), NeuCo-Bench is now released for local benchmarking and evaluation.*
+*Originally developed to evaluate challenge submissions for the 2025 EARTHVISION Challenge at CVPR ([competition details](https://www.grss-ieee.org/events/earthvision-2025/?tab=challenge)), NeuCo-Bench is now released for local benchmarking and evaluation.*
 
-NeuCo-Bench is a **benchmarking framework** for evaluating how well compressed embeddings preserve the information needed for downstream tasks.
-In domains like Earth Observation (EO), image data is mostly used for analysis tasks but pipelines suffer from large data volumes. Traditional compression focusses on pixel-level reconstruction, while Foundation Model (FM) research does not explicitly consider embedding size. NeuCo-Bench fills this gap by enforcing strict size constraints and testing embeddings directly on real-world EO tasks.
+NeuCo-Bench is a **benchmarking framework** designed to evaluate how effectively compressed embeddings preserve information for downstream tasks.
 
-NeuCo-Bench includes an initial set of EO tasks and welcomes the contribution of additional tasks and datasets from EO and other domains.
+In domains like Earth Observation (EO), pipelines typically handle large volumes of image data used primarily for analytical tasks. Traditional compression techniques focus on pixel-level reconstruction, while Foundation Model (FM) research does not explicitly consider embedding size. NeuCo-Bench addresses this gap by enforcing strict size constraints and evaluating embeddings directly on real-world EO tasks.
+
+NeuCo-Bench provides an initial set of EO tasks and invites community contributions of additional tasks and datasets from EO and other domains.
 
 <p align="center">
   <img src="assets/NeuCoBench.png" alt="Framework overview" width="100%" />
@@ -16,9 +17,9 @@ NeuCo-Bench includes an initial set of EO tasks and welcomes the contribution of
 
 ## Key Features
 
-- **Model-agnostic**: Accepts any fixed-size embedding (e.g., 1024‑dimensional feature vector), which enables comparison of compression and representation learning methods.
-- **Task-Driven Evaluation**: Applies linear probes across diverse EO task such as land-cover proportion, cloud detection, and biomass estimation. 
-- **Metrics**: Integrates signal-to-noise scores and dynamic rank aggregation to compare methods.
+- **Model-agnostic**: Supports evaluation of any fixed-size embedding (e.g. 1024‑dim feature vectors), which enables comparison among compression and representation learning methods.
+- **Task-Driven Evaluation**: Utilizes linear probes across diverse EO tasks, including land-cover proportion estimation, cloud detection, and biomass estimation. 
+- **Metrics**: Incorporates signal-to-noise scores and dynamic rank aggregation to compare methods.
 
 ---
 
@@ -44,44 +45,46 @@ python main.py \
   --phase phase-name
 ```
 
-- `--annotation_path` Directory with CSV label files for each task.  
-- `--submission_file` CSV file containing your embeddings.  
+- `--annotation_path` Directory containing CSV label files for each task.  
+- `--submission_file` CSV file with your embeddings.  
 - `--output_dir` Destination for per-task reports, plots, and aggregated benchmark results.  
-- `--config` YAML file specifying cross-validation settings and logging options. See provided sample config.  
-- `--method_name` Identifier for your method, used in filenames and leaderboard entries.  
-- `--phase` A name that groups a set of evaluation runs for joint ranking. Results for each phase are stored in a separate subfolder under `output_dir`. 
+- `--config` YAML file specifying cross-validation settings and logging options (see provided sample).  
+- `--method_name` Identifier for your method used in filenames and leaderboard entries.  
+- `--phase` Groups evaluation runs under a specified phase name for ranking, creating a subfolder within `output_dir`. 
 
-If you'd like to avoid utilization of GPUs, run `CUDA_VISIBLE_DEVICES=''` before execution.
+To disable GPU utilization, run `CUDA_VISIBLE_DEVICES=''` before execution.
 
 ## Overview
 
-NeuCo-Bench moves beyond pixel-level reconstruction to task-oriented semantic evaluation, and measures how well compressed embeddings preserve information for EO tasks.
+NeuCo-Bench emphasizes task-oriented semantic evaluation rather than pixel-level reconstruction, measuring how effectively compressed embeddings retain information relevant to EO tasks.
 
-To evaluate a method with NeuCo-Bench, the workflow is:
+To evaluate embeddings:
 1. Download the [SSL4EO-S12-downstream dataset](https://huggingface.co/datasets/embed2scale/SSL4EO-S12-downstream) from Hugging Face (see [Data](#data)).  
-2. Encode images into fixed-size embeddings and save as a CSV file (see [Creating Embeddings](#creating-embeddings)).  
-3. Run NeuCo-Bench locally to evaluate each method and aggregate scores across methods to build a leaderboard (see [Evaluation and Ranking](#evaluation-and-ranking)).
+2. Encode images into fixed-size embeddings, save as CSV (see [Creating Embeddings](#creating-embeddings)).  
+3. Run NeuCo-Bench locally to evaluate and aggregate scores, generating a leaderboard (see [Evaluation and Ranking](#evaluation-and-ranking)).
 
 ---
 
 ## Data
 
-The **SSL4EO-S12-downstream** dataset is organized into two folders:
+The **SSL4EO-S12-downstream** dataset includes:
 
 - `data/`  
-  Three modality subfolders—`s1/`, `s2l1c/`, and `s2l2a/`—each split into subsets of 1,000 `zarr.zip` files each.
+  Subfolders for modalities (`s1/`, `s2l1c/`, `s2l2a/`) with subsets of 1000 `zarr.zip` files each.
 - `labels/`  
   Annotation files for each downstream task.
 
-Both `data/` and `labels/` are required. See the `examples/` directory for a TorchDataset loader; if you experience data-loading errors, verify that `zarr==2.18.0` is used.
+Both `data/` and `labels/` are required. See `examples/data` for a TorchDataset loader; if you experience data-loading errors, verify that `zarr==2.18.0` is used.
 
-Images are processed and provided in the same format as [SSL4EOS12 v1.1](https://github.com/DLR-MF-DAS/SSL4EO-S12-v1.1), which we therefore recommend as a pretraining dataset for NeuCo-Bench.
+Data format aligns with [SSL4EOS12 v1.1](https://github.com/DLR-MF-DAS/SSL4EO-S12-v1.1), recommended as a pretraining dataset.
 
 ---
 
 ## Creating Embeddings
 
-Use your preferred method to generate fixed-size embeddings and save them as a CSV file. Example scripts in `examples/` show the expected CSV format. For comparison, all methods should use the same embedding dimension—for instance, we set a 1024-dimensional limit during the 2025 CVPR EARTHVISION Challenge.
+Generate embeddings and save them as CSV files. Example scripts in examples/ illustrate the required format and provide two baseline methods: Simple Averaging and embeddings from a pretrained FM (DINO backbone).
+
+To ensure consistent benchmarking, all methods should use the same embedding dimension. We set the embedding size to 1024-dim during the 2025 CVPR EARTHVISION Challenge.
 
 ---
 
@@ -101,25 +104,25 @@ python main.py \
 
 ### Configuration
 
-We provide a sample config file under `benchmark/config.yaml`. It handles the following parameters:
+A sample config file (`benchmark/config.yaml`) specifies:
 
-- `batch_size`, `epochs`, `learning_rate`, `k_folds`: Settings for Cross-Validation.  
-- `standardize_embeddings`: Standardize embeddings using global mean and std before evaluation (Recommended).  
-- `normalize_labels`: Normalize target labels to [0,1] before evaluation (Recommended).  
+- `batch_size`, `epochs`, `learning_rate`, `k_folds`: Cross-validation settings. 
+- `standardize_embeddings`: Standardize embeddings using global mean and std (recommended).  
+- `normalize_labels`: Normalize target labels to [0,1] (recommended).
 - `enable_plots`: Generate per-fold plots (e.g., parity plots for regression).  
 - `update_leaderboard`: Aggregate and update leaderboard after evaluation.  
-- `task_filter`: List of task names to include (defaults to all available in `annotation_path`). 
+- `task_filter`: Tasks to evaluate (default: all tasks available in `annotation_path`). 
 
 ### Results
 
-After running, results are saved under `output_dir/<phase-name>/`, including:
+Results saved under `output_dir/<phase-name>/` include:
 
-- Per-task metric insights and loss curves
-- A `results_summary.json` containing signal-to-noise scores for each task and the overall score 
+- Task-specific metrics and loss curves
+- `results_summary.json` with per-task signal-to-noise scores and overall scores
 
 ### Aggregation
 
-To aggregate scores and produce a ranked leaderboard across all runs in a phase, you can either set `update_leaderboard` to `True` during evaluations or run:
+Aggregate scores for leaderboard by setting `update_leaderboard` to `True` during last evaluation or manually run:
 
 ```bash
 from evaluation.results import summarize_runs
