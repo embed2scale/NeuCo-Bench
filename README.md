@@ -58,13 +58,13 @@ If you'd like to avoid utilization of GPUs, run `CUDA_VISIBLE_DEVICES=''` before
 NeuCo-Bench moves beyond pixel-level reconstruction to task-oriented semantic evaluation, and measures how well compressed embeddings preserve information for EO tasks.
 
 To evaluate a method with NeuCo-Bench, the workflow is:
-1. Download the [SSL4EO-S12-downstream dataset](https://huggingface.co/datasets/embed2scale/SSL4EO-S12-downstream) from Hugging Face (see [Data](#data) below for details).  
+1. Download the [SSL4EO-S12-downstream dataset](https://huggingface.co/datasets/embed2scale/SSL4EO-S12-downstream) from Hugging Face (see [Data](#data)).  
 2. Encode images into fixed-size embeddings and save as a CSV file (see [Creating Embeddings](#creating-embeddings)).  
 3. Run NeuCo-Bench locally to evaluate each method and aggregate scores across methods to build a leaderboard (see [Evaluation and Ranking](#evaluation-and-ranking)).
 
 ---
 
-## Data {#data}
+## Data
 
 The **SSL4EO-S12-downstream** dataset is organized into two folders:
 
@@ -79,13 +79,13 @@ Images are processed and provided in the same format as [SSL4EOS12 v1.1](https:/
 
 ---
 
-## 2. Creating Embeddings {#creating-embeddings}
+## Creating Embeddings
 
 Use your preferred method to generate fixed-size embeddings and save them as a CSV file. Example scripts in `examples/` show the expected CSV format. For comparison, all methods should use the same embedding dimension—for instance, we set a 1024-dimensional limit during the 2025 CVPR EARTHVISION Challenge.
 
 ---
 
-## 3. Evaluation and Ranking {#evaluation-and-ranking}
+## Evaluation and Ranking
 
 Run the benchmark on your embeddings with:
 
