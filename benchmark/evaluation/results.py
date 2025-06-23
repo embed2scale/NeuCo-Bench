@@ -7,7 +7,11 @@ from scipy.stats import rankdata
 
 def save_results(experiment_name, task_results, output_dir: Path, config: dict = None):
     """Save raw results with timestamp and optional config snapshot."""
-
+    
+    # Cast output_dir to Path
+    if not isinstance(output_dir, Path):
+        output_dir = Path(output_dir)
+        
     result_path = output_dir / "results_summary.json"
 
     metadata = {
@@ -23,6 +27,10 @@ def save_results(experiment_name, task_results, output_dir: Path, config: dict =
 
 def aggregate_results(output_dir: Path, phase: str) -> pd.DataFrame:
     """Aggregate all runs under a given phase into a DataFrame."""
+    # Cast output_dir to Path
+    if not isinstance(output_dir, Path):
+        output_dir = Path(output_dir)
+        
     phase_path = output_dir / phase
     if not phase_path.exists():
         raise FileNotFoundError(f"No results found under {phase_path}")
@@ -81,8 +89,13 @@ def compute_leaderboard(df: pd.DataFrame, metric_columns: list[str]) -> pd.DataF
 
 def save_leaderboard(df: pd.DataFrame, output_dir: Path, phase: str):
     """Save leaderboard summary CSV (including mean_score, weighted_score, aggregated_rank)."""
+    # Cast output_dir to Path
+    if not isinstance(output_dir, Path):
+        output_dir = Path(output_dir)
+    
     leaderboard_path = output_dir / "leaderboards" / phase
     leaderboard_path.mkdir(parents=True, exist_ok=True)
+    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_file = leaderboard_path / f"leaderboard_{timestamp}.csv"
     df.to_csv(out_file, index=False)

@@ -90,6 +90,7 @@ def evaluate(submission_file: Path,
             output_dir=run_dir,
             filename_prefix=submission_file.stem,
             enable_plots=config.get("enable_plots", True),
+            output_fold_results=config.get("output_fold_results", False),
         )
 
         task_results[task_name] = result.q_statistic

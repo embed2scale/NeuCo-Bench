@@ -201,6 +201,7 @@ def cross_validate(
         filename_prefix: str,
         enable_plots: bool,
         random_seed: int = 42,
+        output_fold_results: bool = False,
         ) ->  TaskResult:
     """Perform k-fold cross-validation with a linear probe.
 
@@ -214,7 +215,10 @@ def cross_validate(
         epochs: Number of epochs to use in Linear Probe training.
         embedding_dim: Size of embeddings.
         learning_rate: Learning rate for Linear Probe training.
-        output_dir: Path to folder to 
+        output_dir: Path to folder to store results in.
+        enable_plots: Toggle storing of plots. Set to True to store plots.
+        random_seed: Integer seed for random number generator.
+        output_fold_results: Toggle storing performance metric per fold in addition to summary statistics. Default is False, in which case performance per fold is not stored.
     Returns:
         A TaskResult instance containing the evaluation results.
     """
@@ -274,6 +278,8 @@ def cross_validate(
         "mean_score": mean_score,
         "std_dev": std_dev,
     }
+    if output_fold_results:
+        result_metrics["q_t"] = best_metrics.tolist()
 
     (output_dir / task_name / f"{task_name}_result.json").write_text(
         json.dumps(result_metrics, indent=2)
