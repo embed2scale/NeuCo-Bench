@@ -82,7 +82,7 @@ Data format aligns with [SSL4EOS12 v1.1](https://github.com/DLR-MF-DAS/SSL4EO-S1
 
 ## Creating Embeddings
 
-Generate embeddings and save them as CSV files. Example scripts in examples/ illustrate the required format and provide two baseline methods: Simple Averaging and embeddings from a pretrained FM (DINO backbone).
+Generate embeddings and save them as CSV files. Example scripts in `examples/` illustrate the required format and provide two baseline methods: Averaging Baseline (Bilinear interpolation and averaging of the modalities) and downsampled embeddings from a pretrained FM (DINO ViT pretrained on SSL4EO).
 
 To ensure consistent benchmarking, all methods should use the same embedding dimension. We set the embedding size to 1024-dim during the 2025 CVPR EARTHVISION Challenge.
 
