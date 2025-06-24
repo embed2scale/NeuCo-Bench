@@ -84,11 +84,12 @@ def plot_regression_scatter(
 
     # Draw diagonal identity line
     bounds = [min(min(y_train_true), min(y_val_true)), max(max(y_train_true), max(y_val_true))]
-    ax.plot(bounds, bounds, linestyle='--', linewidth=2)
+    ax.plot(bounds, bounds, linestyle='--', linewidth=3, color='green')
 
     ax.set_xlabel("True values")
     ax.set_ylabel("Predicted values")
     ax.set_title(f"Regression Scatter: {task_name}, Fold {fold_idx + 1}")
+    ax.legend(loc="best") 
 
     # Save figure
     filename = f"{base_name}_{task_name}_scatter_fold{fold_idx + 1}.png"
