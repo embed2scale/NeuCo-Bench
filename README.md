@@ -84,7 +84,13 @@ Data format aligns with [SSL4EOS12 v1.1](https://github.com/DLR-MF-DAS/SSL4EO-S1
 
 Generate embeddings and save them as CSV files. Example scripts in `examples/` illustrate the required format and provide two baseline methods: Averaging Baseline (Bilinear interpolation and averaging of the modalities) and downsampled embeddings from a pretrained FM (DINO ViT pretrained on SSL4EO).
 
-To ensure consistent benchmarking, all methods should use the same embedding dimension. We set the embedding size to 1024-dim during the 2025 CVPR EARTHVISION Challenge.
+To ensure consistent benchmarking, all methods should use the same embedding dimension. We set the embedding size to 1024 (dimensions) during the 2025 CVPR EARTHVISION data challenge.
+As reference, we provide a selection of CSV files from the 2025 CVPR EARTHVISION data challenge in the repo's top-level `data/` directory. More details in `data/README.md`.
+In general, the https://github.com/embed2scale/NeuCo-Bench/tree/main/data folder is tracked by Git LFS to keep initial clones of this repo slim. If you like to download the approx. 500 MB of embeddings, utilize:
+```Bash
+git lfs install
+git pull
+```
 
 ---
 
