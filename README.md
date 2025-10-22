@@ -1,8 +1,10 @@
 # NeuCo-Bench
 
-**Licence**: Apache-2.0
+**softare licence**: Apache-2.0
 
-*Originally developed to evaluate challenge submissions for the 2025 EARTHVISION Challenge at CVPR ([competition details](https://www.grss-ieee.org/events/earthvision-2025/?tab=challenge)), NeuCo-Bench is now released for local benchmarking and evaluation. Additional tech details in [http://arxiv.org/html/2510.17914](http://arxiv.org/html/2510.17914)*
+**TL;DR**: *Originally developed to evaluate challenge submissions for the 2025 EARTHVISION Challenge at CVPR ([competition details](https://www.grss-ieee.org/events/earthvision-2025/?tab=challenge)), NeuCo-Bench is now released for local benchmarking and evaluation - additional tech details in [http://arxiv.org/html/2510.17914](http://arxiv.org/html/2510.17914).*
+
+---
 
 NeuCo-Bench is a **benchmarking framework** designed to evaluate how effectively compressed embeddings preserve information for downstream tasks.
 
@@ -147,3 +149,17 @@ We invite the community to collaborate and appreciate contributions, including b
 - Extension to further input modalities
 
 Check out [CONTRIBUTING.md](.github/CONTRIBUTING.md).
+
+## How to cite
+
+```BibTeX
+@article{Vinge2025NeuCoBench,
+  author       = {Rikard Vinge and Isabelle Wittmann and Jannik Schneider and Michael Marszalek and Luis Gilch and Thomas Brunschwiler and Conrad M Albrecht},
+  title        = {NeuCo-Bench: A Novel Benchmark Framework for Neural Embeddings in Earth Observation},
+  journal      = {arXiv preprint arXiv:2510.17914},
+  year         = {2025},
+  url          = {https://arxiv.org/abs/2510.17914},
+  doi          = {10.48550/arXiv.2510.17914},
+  note         = {Submitted on 19 Oct 2025},
+}
+```
