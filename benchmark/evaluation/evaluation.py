@@ -46,10 +46,10 @@ def evaluate(submission_file: Path,
 
     # Load data
     annotation_df = get_annotations(annotation_path)
-    submission_df = load_submission(
+    submission_df, embedding_dim = load_submission(
         file_path=submission_file,
         valid_ids=set(annotation_df['id']),
-        expected_dim=config['embedding_dim'],
+        expected_dim=config.get("embedding_dim", None),
         exclude_file=exclude_file,
         standardize=config['standardize_embeddings']
     )
@@ -61,11 +61,12 @@ def evaluate(submission_file: Path,
     run_dir = output_dir / phase / experiment_name
     run_dir.mkdir(parents=True, exist_ok=True)
 
-    task_results = {}
-    task_filter = config.get("task_filter")
+    task_q_scores = {}
+    task_acc_scores = {}
+    task_filter = config.get("task_filter", None)
 
     for task_name, group in merged_df.groupby("task_name"):
-        if task_filter is not False and task_name not in task_filter:
+        if task_filter is not None and task_name not in task_filter:
             logger.info("Skipping task %s due to filter", task_name)
             continue
 
@@ -85,7 +86,7 @@ def evaluate(submission_file: Path,
             batch_size=config["batch_size"],
             n_splits=config["k_folds"],
             epochs=config["epochs"],
-            embedding_dim=config["embedding_dim"],
+            embedding_dim=embedding_dim,
             learning_rate=config["learning_rate"],
             output_dir=run_dir,
             filename_prefix=submission_file.stem,
@@ -93,7 +94,12 @@ def evaluate(submission_file: Path,
             output_fold_results=config.get("output_fold_results", False),
         )
 
-        task_results[task_name] = result.q_statistic
+        task_q_scores[task_name] = result.q_statistic
+        task_acc_scores[task_name] = result.mean_score
 
-    save_results(experiment_name=experiment_name, task_results=task_results, output_dir=run_dir, config=config)
+    save_results(experiment_name=experiment_name,
+                 task_q_scores=task_q_scores,
+                 task_acc_scores=task_acc_scores,
+                 output_dir=run_dir, config=config)
+
     logger.info("Finished evaluation.")

@@ -5,7 +5,7 @@ from datetime import datetime
 import pandas as pd
 from scipy.stats import rankdata
 
-def save_results(experiment_name, task_results, output_dir: Path, config: dict = None):
+def save_results(experiment_name: str, task_q_scores: dict[str, float], task_acc_scores: dict[str, float], output_dir: Path, config: dict = None):
     """Save raw results with timestamp and optional config snapshot."""
     
     # Cast output_dir to Path
@@ -16,8 +16,10 @@ def save_results(experiment_name, task_results, output_dir: Path, config: dict =
 
     metadata = {
         "experiment": experiment_name,
-        "overall_score": np.mean([v for v in task_results.values()]),
-        "task_results": task_results,
+        "overall_q_score": np.mean([v for v in task_q_scores.values()]),
+        "overall_acc_score": np.mean([v for v in task_acc_scores.values()]),
+        "task_q_scores": task_q_scores,
+        "task_acc_scores": task_acc_scores,
     }
     if config:
         metadata["config"] = config
