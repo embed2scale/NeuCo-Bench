@@ -43,9 +43,19 @@ def aggregate_results(output_dir: Path, phase: str) -> pd.DataFrame:
             with open(json_file) as f:
                 data = json.load(f)
                 row = {
-                    "experiment": data["experiment"],
-                }
-                row.update(data["task_results"])
+                    "experiment": data["experiment"],}
+
+                row["overall_q_score"] = data.get("overall_q_score")
+                row["overall_acc_score"] = data.get("overall_acc_score")
+
+                # add per-task Q scores (used for ranking)
+                for k, v in data.get("task_q_scores", {}).items():
+                    row[f"q::{k}"] = v
+
+                # store per-task acc scores (not used for ranking)
+                for k, v in data.get("task_acc_scores", {}).items():
+                    row[f"acc::{k}"] = v
+
                 rows.append(row)
 
     return pd.DataFrame(rows)
@@ -110,15 +120,22 @@ def summarize_runs(output_dir: Path, phase: str):
         print("No results to summarize.")
         return
 
-    metric_columns = [col for col in df.columns if col not in {"experiment", "timestamp"}]
-    leaderboard = compute_leaderboard(df, metric_columns)
+    q_metric_columns = [c for c in df.columns if c.startswith("q::")]
+    leaderboard = compute_leaderboard(df, q_metric_columns)
+
+    extra_cols = [c for c in df.columns if c.startswith("acc::")] + ["overall_q_score", "overall_acc_score"]
+    extra_cols = [c for c in extra_cols if c in df.columns]
+
+    leaderboard = leaderboard.merge(df[["experiment"] + extra_cols], on="experiment", how="left")
 
     if leaderboard.empty:
         print("No complete runs (all have missing metrics); nothing to rank.")
         return
 
     print("\n=== Leaderboard Summary ===")
-    display_cols = ["experiment", "mean_score", "weighted_score", "aggregated_rank"] + metric_columns
+    display_cols = (
+            ["experiment", "mean_score", "weighted_score", "aggregated_rank"]
+    )
     print(leaderboard[display_cols].to_string(index=False))
 
     save_leaderboard(leaderboard, output_dir, phase)
