@@ -51,7 +51,7 @@ def evaluate(submission_file: Path,
         valid_ids=set(annotation_df['id']),
         expected_dim=config.get("embedding_dim", None),
         exclude_file=exclude_file,
-        standardize=config['standardize_embeddings']
+        standardize=config.get('standardize_embeddings', True)
     )
 
     merged_df = annotation_df.merge(submission_df, on="id").dropna(subset=["embedding"])
