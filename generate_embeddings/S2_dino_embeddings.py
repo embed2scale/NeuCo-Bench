@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 from data.submission_utils import create_submission_from_dict, test_submission
 from data.dataset import (
-    E2SChallengeDataset,
+    SSL4EODownstreamDataset,
     Normalize,
     TemporalMean,
     InputResizer,
@@ -71,7 +71,7 @@ def main() -> None:
         TemporalMean() # average over 4 seasonal timesteps
         ])
     
-    dataset = E2SChallengeDataset(
+    dataset = SSL4EODownstreamDataset(
         DATA_PATH,
         modalities=MODALITIES,
         seasons=4,

@@ -1,5 +1,5 @@
 """ 
-As provided on
+Updated from:
 https://github.com/DLR-MF-DAS/embed2scale-challenge-supplement/blob/main/data_loading_submission_demo/challenge_dataset.py
 """
 import torch
@@ -21,7 +21,7 @@ S1GRD_MEAN = [-12.577, -20.265]
 S1GRD_STD = [5.179, 5.872]
 
 
-class E2SChallengeDataset(Dataset):
+class SSL4EODownstreamDataset(Dataset):
 
     def __init__(self, 
                  data_path: str = None, 
@@ -34,7 +34,7 @@ class E2SChallengeDataset(Dataset):
                  output_file_name: bool = False,
                  shift_s2_channels: bool = True,
                 ):
-        """Dataset class for the embed2scale challenge data
+        """Dataset class for the SSL4EO downstream dataset.
 
         Parameters
         ----------
@@ -43,7 +43,7 @@ class E2SChallengeDataset(Dataset):
         transform : torch.Compose
             Transformations to apply to the data
         modalities : list[str]
-            List of modalities to include. Should correpond to the subfolders under data_path.
+            List of modalities to include. Should correspond to the subfolders under data_path.
         dataset_name : str
             Name of dataset in zarr archive. Use 'bands' here. Defaults to 'bands'.
         seasons : int
@@ -56,7 +56,7 @@ class E2SChallengeDataset(Dataset):
             Toggle output of the file name.
         shift_s2_channels : bool
             Toggle shifting the S2 channels by 1000 to align to SSL4EO-S12 v1.1. Default is True, where the challenge data S2 channels are 
-            shifted upward 1000 to have the range as SSL4EO-S12 v1.1. The background is that ESA decided 
+            shifted upward 1000 to have the same range as SSL4EO-S12 v1.1. The background is that ESA decided
             from 2022-01-25 to shift the DN values of S2 by 1000 upward. SSL4EO-S12 v1.1 includes this shift, 
             while the challenge data does not.
 
