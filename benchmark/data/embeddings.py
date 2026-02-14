@@ -36,71 +36,34 @@ class EmbeddingDataset(Dataset):
         return self.features[idx], self.targets[idx]
 
 
-def unify_nans_in_embeddings(vec_str):
-    """Replace missing (NaN) values in string vec_str with 0."""
-    vec_str = vec_str.replace("float('nan')", "'nan'").replace('float("nan")', "'nan'")
-    vec_str = re.sub(r'\\b(nan)\\b', "'nan'", vec_str, flags=re.IGNORECASE)
-
-    try:
-        vec = ast.literal_eval(vec_str)
-    except Exception as e:
-        raise ValueError(f"Error parsing embedding: {vec_str}, Error: {e}")
-
-    processed_vec = []
-    for item in vec:
-        if isinstance(item, str) and item.lower() == "nan":
-            processed_vec.append(0.0)
-        else:
-            val = float(item)
-            processed_vec.append(0.0 if np.isnan(val) else val)
-
-    return processed_vec
-
-
-def process_embedding(embedding_str, embedding_dim):
-    """Preprocess embedding to adhere to basic requirements that the vector should be embedding_dim elements long and contain no missing (NaN) values.
-
-    Args:
-        embedding_str: Embedding in format as string "[val1, val2, ...]".
-        embedding_dim: Number of embedding dimensions.
-    """
-    if pd.isna(embedding_str):
-        return [0.0] * embedding_dim
-
-    vec = unify_nans_in_embeddings(embedding_str)
-
-    if len(vec) != embedding_dim:
-        raise ValueError(f"Embedding dimension mismatch. Expected {embedding_dim}, got {len(vec)}")
-
-    return vec
-
-
 def load_submission(
     file_path: Path,
     valid_ids: Set[str],
-    expected_dim: int,
+    expected_dim: int | None = None,
     exclude_file: Optional[Path] = None,
     standardize: bool = True,
-) -> pd.DataFrame:
+) -> (pd.DataFrame, int):
     """
     Load and preprocess CSV of embeddings.
 
     - Filters by IDs in valid_ids and optional exclude list.
-    - Standardizes embeddings (zero mean, unit variance).
+    - Standardizes embeddings (zero mean, unit variance) if standardize is True.
 
     Returns a DataFrame with 'id' and 'embedding' columns.
 
     Args:
         file_path: Path to file containing embeddings.
         valid_ids: Set of valid embedding IDs.
-        expected_dim: Expected dimension of embeddings, e.g. 1024.
+        expected_dim: Expected dimension of embeddings, e.g. 1024, if None is inferred from given csv.
         exclude_file: Path to file containing embeddings to exclude from processing.
-        standardize: Boolean which controls whether embeddings are standardized (default). Standardization is done over the complete embedding_file, not per downstream task.
+        standardize: Boolean which controls whether embeddings are standardized (default).
+            Standardization is done over the complete embedding_file, not per downstream task.
     Returns:
-        Pandas Dataframe with columns 'id' and 'embedding'.
+        - Pandas Dataframe with columns 'id' and 'embedding'.
+        - Embedding dimension.
     Raises:
         ValueError if embedding_file does not contain column 'id'.
-        ValueError if embedding_file contains missing (NaN) values.
+        ValueError if there are more embedding dim columns than expected.
     """
     logger.info("Loading embeddings from %s", file_path)
     df = pd.read_csv(file_path)
@@ -108,7 +71,14 @@ def load_submission(
     if 'id' not in df.columns:
         raise ValueError(f"""Submission file must contain column 'id'.""")
 
-    df['id'] = df['id'].str.replace(".zarr.zip", "", regex=False)
+    # Strip .zarr/ or .zarr.zip from id column if present
+    df["id"] = (
+        df["id"]
+        .astype(str)
+        .str.replace(".zarr.zip", "", regex=False)
+        .str.replace(".zarr", "", regex=False)
+    )
+
     df.set_index('id', inplace=True)
 
     if exclude_file and exclude_file.exists():
@@ -119,15 +89,34 @@ def load_submission(
     df = df.loc[df.index.intersection(valid_ids)]
     logger.info("Retained %d valid records", len(df))
 
-    processed_embeddings = []
-    for _, row in df.iterrows():
-        embedding = process_embedding(str(list(row)), expected_dim)
-        processed_embeddings.append(embedding)
+    # Embedding dim columns are identified by column names only consisting of digits, if none are found we default to using all columns.
+    digit_cols = [c for c in df.columns if str(c).isdigit()]
+    if digit_cols:
+        emb_cols = sorted(digit_cols, key=lambda s: int(s))
+    else:
+        emb_cols = list(df.columns)
 
-    embeddings_array = np.array(processed_embeddings)
+    found_dim = len(emb_cols)
 
-    if np.isnan(embeddings_array).any():
-        raise ValueError("NaN values detected in processed embeddings.")
+    # Infer embedding dimension if embedding dim is not specified
+    if expected_dim is None:
+        expected_dim = found_dim
+        logger.info("Inferred embedding_dim=%d from submission columns.", expected_dim)
+    if found_dim > expected_dim:
+        raise ValueError(f"Embedding dimension mismatch. Expected {expected_dim}, got {found_dim}")
+
+    # Replace NaNs with 0
+    emb_df = df[emb_cols].apply(pd.to_numeric, errors="coerce").fillna(0.0)
+    embeddings_array = emb_df.to_numpy(dtype=np.float32)
+
+    # Zero-pad if embeddings have less dimensions than specified
+    if found_dim < expected_dim:
+        logger.info(
+            "Found embedding dim %d; expected %d. Zero-padding embeddings to %d.",
+            found_dim, expected_dim, expected_dim
+        )
+        pad = expected_dim - found_dim
+        embeddings_array = np.pad(embeddings_array, ((0, 0), (0, pad)), mode="constant")
 
     if standardize:
         mu, sigma = embeddings_array.mean(), embeddings_array.std()
@@ -140,7 +129,7 @@ def load_submission(
         'embedding': list(embeddings_array)
     }).reset_index(drop=True)
 
-    return result
+    return result, expected_dim
 
 
 def parse_annotations(annotation_path: Path) -> pd.DataFrame:
