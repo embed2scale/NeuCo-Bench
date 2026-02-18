@@ -28,7 +28,13 @@ def save_results(experiment_name: str, task_q_scores: dict[str, float], task_acc
         json.dump(metadata, f, indent=2)
 
 def aggregate_results(output_dir: Path, phase: str) -> pd.DataFrame:
-    """Aggregate all runs under a given phase into a DataFrame."""
+    """Aggregate all runs under a given phase into a DataFrame.
+
+      Backward compatibility:
+      - old format may store per-task scores under "task_result"
+      - old format may store overall under "overall_score"
+      - old per-task scores are mapped to new naming as q::*
+    """
     # Cast output_dir to Path
     if not isinstance(output_dir, Path):
         output_dir = Path(output_dir)
@@ -45,16 +51,26 @@ def aggregate_results(output_dir: Path, phase: str) -> pd.DataFrame:
                 row = {
                     "experiment": data["experiment"],}
 
-                row["overall_q_score"] = data.get("overall_q_score")
-                row["overall_acc_score"] = data.get("overall_acc_score")
+                if "task_q_scores" in data or "task_acc_scores" in data: # new format preferred
 
-                # add per-task Q scores (used for ranking)
-                for k, v in data.get("task_q_scores", {}).items():
-                    row[f"q::{k}"] = v
+                    row["overall_q_score"] = data.get("overall_q_score")
+                    row["overall_acc_score"] = data.get("overall_acc_score")
 
-                # store per-task acc scores (not used for ranking)
-                for k, v in data.get("task_acc_scores", {}).items():
-                    row[f"acc::{k}"] = v
+                    # add per-task Q scores (used for ranking)
+                    for k, v in data.get("task_q_scores", {}).items():
+                        row[f"q::{k}"] = v
+
+                    # store per-task acc scores (not used for ranking)
+                    for k, v in data.get("task_acc_scores", {}).items():
+                        row[f"acc::{k}"] = v
+
+                else: # old format mapped to new
+                    row["overall_q_score"] = data.get("overall_score")
+                    row["overall_acc_score"] = None  # not available in old format
+
+                    old_task_dict = data.get("task_result",  {})
+                    for k, v in (old_task_dict or {}).items():
+                        row[f"q::{k}"] = v
 
                 rows.append(row)
 
