@@ -15,13 +15,17 @@ def parse_args():
     parser.add_argument("--exclude_file", type=Path, default=None, required=False, help='File containing your compressed embeddings.')
     parser.add_argument("--annotation_path", type=Path, required=True, help='Folder containing csv label files per downstream task.')
     parser.add_argument("--config", type=Path, default="config.yaml", help='YAML file with cross-validation settings, and logging options. See provided sample config.')
-    parser.add_argument("--method_name", type=str, required=True, help='Identifier for your compression method—used to tag outputs and leaderboards.')
+    parser.add_argument("--method_name", type=str, default=None, help='Identifier for your compression method—used to tag outputs and leaderboards.')
     parser.add_argument("--output_dir", type=Path, default=Path("results/"), help='Directory to save per-task reports, plots, and aggregated results.')
-    parser.add_argument("--phase", type=str, default="all", help='A label (e.g., “dev”, “eval”) defining a particular benchmark setup. Results for each phase are stored in a separate subfolder under output_dir.')
+    parser.add_argument("--phase", type=str, default="results", help='A label (e.g., “dev”, “eval”) defining a particular benchmark setup. Results for each phase are stored in a separate subfolder under output_dir.')
     return parser.parse_args()
 
 def main():
     args = parse_args()
+
+    if args.method_name is None:
+        args.method_name = args.submission_file.stem
+
     with args.config.open() as f:
         config = yaml.safe_load(f)
 

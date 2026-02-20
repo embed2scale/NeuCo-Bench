@@ -5,7 +5,7 @@ from datetime import datetime
 import pandas as pd
 from scipy.stats import rankdata
 
-def save_results(experiment_name, task_results, output_dir: Path, config: dict = None):
+def save_results(experiment_name: str, task_q_scores: dict[str, float], task_acc_scores: dict[str, float], output_dir: Path, config: dict = None):
     """Save raw results with timestamp and optional config snapshot."""
     
     # Cast output_dir to Path
@@ -16,8 +16,10 @@ def save_results(experiment_name, task_results, output_dir: Path, config: dict =
 
     metadata = {
         "experiment": experiment_name,
-        "overall_score": np.mean([v for v in task_results.values()]),
-        "task_results": task_results,
+        "overall_q_score": np.mean([v for v in task_q_scores.values()]),
+        "overall_acc_score": np.mean([v for v in task_acc_scores.values()]),
+        "task_q_scores": task_q_scores,
+        "task_acc_scores": task_acc_scores,
     }
     if config:
         metadata["config"] = config
@@ -26,7 +28,13 @@ def save_results(experiment_name, task_results, output_dir: Path, config: dict =
         json.dump(metadata, f, indent=2)
 
 def aggregate_results(output_dir: Path, phase: str) -> pd.DataFrame:
-    """Aggregate all runs under a given phase into a DataFrame."""
+    """Aggregate all runs under a given phase into a DataFrame.
+
+      Backward compatibility:
+      - old format may store per-task scores under "task_result"
+      - old format may store overall under "overall_score"
+      - old per-task scores are mapped to new naming as q::*
+    """
     # Cast output_dir to Path
     if not isinstance(output_dir, Path):
         output_dir = Path(output_dir)
@@ -41,9 +49,29 @@ def aggregate_results(output_dir: Path, phase: str) -> pd.DataFrame:
             with open(json_file) as f:
                 data = json.load(f)
                 row = {
-                    "experiment": data["experiment"],
-                }
-                row.update(data["task_results"])
+                    "experiment": data["experiment"],}
+
+                if "task_q_scores" in data or "task_acc_scores" in data: # new format preferred
+
+                    row["overall_q_score"] = data.get("overall_q_score")
+                    row["overall_acc_score"] = data.get("overall_acc_score")
+
+                    # add per-task Q scores (used for ranking)
+                    for k, v in data.get("task_q_scores", {}).items():
+                        row[f"q::{k}"] = v
+
+                    # store per-task acc scores (not used for ranking)
+                    for k, v in data.get("task_acc_scores", {}).items():
+                        row[f"acc::{k}"] = v
+
+                else: # old format mapped to new
+                    row["overall_q_score"] = data.get("overall_score")
+                    row["overall_acc_score"] = None  # not available in old format
+
+                    old_task_dict = data.get("task_result",  {})
+                    for k, v in (old_task_dict or {}).items():
+                        row[f"q::{k}"] = v
+
                 rows.append(row)
 
     return pd.DataFrame(rows)
@@ -108,15 +136,22 @@ def summarize_runs(output_dir: Path, phase: str):
         print("No results to summarize.")
         return
 
-    metric_columns = [col for col in df.columns if col not in {"experiment", "timestamp"}]
-    leaderboard = compute_leaderboard(df, metric_columns)
+    q_metric_columns = [c for c in df.columns if c.startswith("q::")]
+    leaderboard = compute_leaderboard(df, q_metric_columns)
+
+    extra_cols = [c for c in df.columns if c.startswith("acc::")] + ["overall_q_score", "overall_acc_score"]
+    extra_cols = [c for c in extra_cols if c in df.columns]
+
+    leaderboard = leaderboard.merge(df[["experiment"] + extra_cols], on="experiment", how="left")
 
     if leaderboard.empty:
         print("No complete runs (all have missing metrics); nothing to rank.")
         return
 
     print("\n=== Leaderboard Summary ===")
-    display_cols = ["experiment", "mean_score", "weighted_score", "aggregated_rank"] + metric_columns
+    display_cols = (
+            ["experiment", "mean_score", "weighted_score", "aggregated_rank"]
+    )
     print(leaderboard[display_cols].to_string(index=False))
 
     save_leaderboard(leaderboard, output_dir, phase)

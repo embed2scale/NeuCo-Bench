@@ -112,7 +112,7 @@ python main.py \
 
 ### Configuration
 
-A sample config file (`benchmark/config.yaml`) specifies:
+A sample config file (`configs/sample_config.yaml`) specifies:
 
 - `batch_size`, `epochs`, `learning_rate`, `k_folds`: Cross-validation settings. 
 - `standardize_embeddings`: Standardize embeddings using global mean and std (recommended).  

@@ -1,10 +1,13 @@
-embedding_dim: 1024
+# Required configs
 batch_size: 64
 epochs: 20
 learning_rate: 0.001
-k_folds: 40 # Eval: 200
+k_folds: 40
+
+# Optional configs
+embedding_dim: null
 standardize_embeddings: true
 normalize_labels: true
 enable_plots: false
 update_leaderboard: false
-task_filter: false #eg. ["biomass_mean", "biomass_std"]
+task_filter: null #eg. ["biomass_mean", "biomass_std"]
