@@ -17,8 +17,8 @@ NeuCo-Bench provides an initial set of EO tasks and invites community contributi
 ## Navigation
 
 - **[Data](data.md)** — Dataset structure and annotation requirements.
-- **[Generate Embeddings](data.md)** — Information and examples for embedding generation. 
-- **[Evaluation & Results](evaluation_guide.md)** — Full evaluation pipeline, metrics, output structure and ranking method.
+- **[Generate Embeddings](embedding_generation.md)** — Information and examples for embedding generation. 
+- **[Evaluation & Results](evaluation_and_results.md)** — Full evaluation pipeline, metrics, output structure and ranking method.
 - **[Contributing](contributing.md)** — Add new tasks, datasets, or improvements.
 
 ---
