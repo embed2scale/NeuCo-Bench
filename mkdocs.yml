@@ -1,0 +1,35 @@
+site_name: "NeuCo-Bench"
+site_url: https://embed2scale.github.io/NeuCo-Bench/
+repo_url: https://github.com/embed2scale/NeuCo-Bench
+theme:
+  name: material
+  logo: assets/logo_header.png
+  favicon: assets/logo.png
+  palette:
+    scheme: default
+    primary: white
+    accent: indigo
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - search.highlight
+    - search.suggest
+
+nav:
+  - Overview: index.md
+  - Data: data.md
+  - Generate Embeddings: embedding_generation.md
+  - Evaluation and Results: evaluation_and_results.md
+  - Contributing: contributing.md
+
+plugins:
+  - search
+
+copyright: Copyright &copy; 2026 Embed2Scale
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - js/logo.js

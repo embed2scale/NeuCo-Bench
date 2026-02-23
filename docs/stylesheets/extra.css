@@ -1,0 +1,9 @@
+
+@media screen and (min-width: 1220px) {
+  img[src="assets/logo_header.png"] {
+    display: none !important;
+  }
+  .md-nav__title {
+    display: none !important;
+  }
+}
