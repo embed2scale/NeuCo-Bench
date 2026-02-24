@@ -7,9 +7,7 @@ To evaluate embeddings, you first need to encode the input data you want to benc
 We provide example scripts in `generate_embeddings/` that illustrate the required format and include two baselines:  
 
 - An averaging baseline across modalities  
-
 - Downsampled embeddings from a pretrained FM (DINO ViT trained on SSL4EO)  
-
 
 You can also use the [TerraTorch Embedding Generation Task](https://github.com/terrastackai/terratorch/tree/main/examples/embeddings) to export embeddings in the required CSV format by setting the output format to `neuco_csv`.
 
@@ -22,8 +20,7 @@ As a reference, we provide a selection of CSV files from the CVPR 2025 EarthVisi
 For size-constrained benchmarking, you can set an upper embedding size limit in the NeuCo-Bench config. For example, during the CVPR 2025 EarthVision challenge we used an embedding size of 1024. If `embedding_dim` is set in the config:  
 
 - Embeddings larger than this will raise an error  
-
-- Smaller embeddings are automatically zero-padded to the target size
+- Smaller embeddings are automatically zero-padded to the target size  
 
 ### Embedding Format
 

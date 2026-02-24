@@ -55,15 +55,10 @@ python main.py
 
 **Arguments:**
 - `annotation_path` — Directory with task label files.  
-
 - `submission_file` — Your embeddings (CSV).  
-- 
 - `output_dir` — Destination folder for metrics, plots, and summaries.  
-
 - `config` — YAML with CV settings and preprocessing options.  
-- 
 - `method_name` — Name used in result folders and leaderboard.  
-
 
 To force CPU execution:
 ```
