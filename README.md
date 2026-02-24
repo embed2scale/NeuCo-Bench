@@ -62,9 +62,9 @@ To disable GPU utilization, run `CUDA_VISIBLE_DEVICES=''` before execution.
 ## Overview
 
 To evaluate embeddings:
-1. Download the [SSL4EO-S12-downstream dataset](https://huggingface.co/datasets/embed2scale/SSL4EO-S12-downstream) from Hugging Face (see [Data](#data)).  
-2. Encode images into fixed-size embeddings, save as CSV (see [Embedding Generation](#creating-embeddings)).  
-3. Run NeuCo-Bench locally to evaluate and aggregate scores, generating a leaderboard (see [Evaluation and Ranking](#evaluation-and-ranking)).
+1. Download the [SSL4EO-S12-downstream dataset](https://huggingface.co/datasets/embed2scale/SSL4EO-S12-downstream) from Hugging Face (see [Data](#1-data)).  
+2. Encode images into fixed-size embeddings, save as CSV (see [Embedding Generation](#2-embedding-generation)).  
+3. Run NeuCo-Bench locally to evaluate and aggregate scores, generating a leaderboard (see [Evaluation and Ranking](#3-evaluation-and-ranking)).
 
 ---
 
