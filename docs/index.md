@@ -2,9 +2,9 @@
 
 NeuCo-Bench is a **benchmarking framework** designed to evaluate how effectively **compact, fixed-size embeddings** preserve information for downstream tasks. Originally developed for the 2025 CVPR EARTHVISION Challenge, it now provides a standard, task-driven and lightweight setup for evaluating embeddings locally.
 
-In domains like Earth Observation (EO), pipelines typically handle large volumes of multi-modal, multi-temporal image data used primarily for analytical tasks. Yet, there is no standardized, method-agnostic benchmark that evaluates fixed-size embeddings, bridging both neural compression and representation learning. NeuCo-Bench addresses this gap by evaluating embeddings directly on real-world EO tasks under explicit embedding size constraints.
+In domains like Earth Observation (EO), pipelines typically handle large volumes of multi-modal, multi-temporal image data used primarily for analytical tasks. Yet, there is no standardized, method-agnostic benchmark that evaluates fixed-size embeddings, bridging both neural compression and representation learning. 
 
-NeuCo-Bench provides an initial set of EO tasks and invites community contributions of additional tasks and datasets from EO and other domains.
+NeuCo-Bench addresses this gap by evaluating embeddings directly on real-world EO tasks under explicit embedding size constraints. It provides an initial set of EO tasks and invites community contributions of additional tasks and datasets from EO and other domains.
 
 ## Key Features
 
@@ -54,11 +54,11 @@ python main.py
 ```
 
 **Arguments:**
-- `annotation_path` — Directory with task label files.
-- `submission_file` — Your embeddings (CSV).
-- `output_dir` — Destination folder for metrics, plots, and summaries.
-- `config` — YAML with CV settings and preprocessing options.
-- `method_name` — Name used in result folders and leaderboard.
+- `annotation_path` — Directory with task label files.  
+- `submission_file` — Your embeddings (CSV).  
+- `output_dir` — Destination folder for metrics, plots, and summaries.  
+- `config` — YAML with CV settings and preprocessing options.  
+- `method_name` — Name used in result folders and leaderboard.  
 
 To force CPU execution:
 ```

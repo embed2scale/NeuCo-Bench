@@ -18,13 +18,13 @@ python main.py \
   --phase "phase-name" (optional)
 ```
 
-**Arguments:**
-- **`annotation_path`** — Folder containing task label files (`<task>__<type>.csv`).
-- **`submission_file`** — Path to your embeddings CSV.
-- **`output_dir`** — Destination for per-task reports, plots, and aggregated benchmark results.  
-- **`config`** —  YAML file specifying cross-validation settings and logging options (see below).  
-- **`method_name`** — Optional name used to tag your run. Defaults to infer from embedding csv name.
-- **`phase`** — Optional tag to group runs (e.g. `dev`, `ablation`). Defaults to `results`.
+**Arguments:**  
+- **`annotation_path`** — Folder containing task label files (`<task>__<type>.csv`).  
+- **`submission_file`** — Path to your embeddings CSV.  
+- **`output_dir`** — Destination for per-task reports, plots, and aggregated benchmark results.    
+- **`config`** —  YAML file specifying cross-validation settings and logging options (see below).    
+- **`method_name`** — Optional name used to tag your run. Defaults to infer from embedding csv name.  
+- **`phase`** — Optional tag to group runs (e.g. `dev`, `ablation`). Defaults to `results`.  
 
 **Output directory:**
 ```
@@ -101,10 +101,10 @@ A higher Q indicates a method that is both strong and stable.
 ## Results & Leaderboard
 
 ### Per‑Task Results
-Each evaluated task produces a `<task>_result.json` containing:
-- `q_stat` (see above)
-- `mean_score` (R²/F1)
-- `std_dev` (R²/F1)
+Each evaluated task produces a `<task>_result.json` containing:  
+- `q_stat` (see above)  
+- `mean_score` (R²/F1)  
+- `std_dev` (R²/F1)  
 
 If enabled, the directory includes loss curves.
 
