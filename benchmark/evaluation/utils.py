@@ -1,4 +1,8 @@
-import random, numpy as np, torch
+import random
+import numpy as np
+import torch
+from dataclasses import dataclass
+from typing import Optional, Any
 
 def fix_all_seeds(seed: int = 42):
     """
@@ -14,3 +18,22 @@ def fix_all_seeds(seed: int = 42):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.use_deterministic_algorithms(True)
+
+
+@dataclass
+class FoldResult:
+    train_loss: list[float]
+    val_loss: list[float]
+    metric_history: list[float]
+    best_metric: float
+    best_model_state: dict
+    model: Optional[Any] = None
+
+
+@dataclass
+class TaskResult:
+    task_name: str
+    q_statistic: float
+    mean_score: float
+    std_dev: float
+    model: Optional[Any] = None

@@ -67,10 +67,7 @@ NeuCo-Bench applies a task-wise linear‑probing workflow.
 A reference config is provided in `configs/sample_config.yaml`. The following options control the evaluation pipeline.
 
 ### Required Parameters
-- **`batch_size`** — Batch size for linear probes
-- **`epochs`** — Training epochs
-- **`learning_rate`** — Optimizer learning rate
-- **`k_folds`** — Number of cross‑validation folds
+- **`k_folds`** — Number of ShuffleSplit folds for score aggregation.
 
 ### Optional Parameters
 - **`embedding_dim`** — Expected embedding size; smaller vectors are zero‑padded.
@@ -79,7 +76,21 @@ A reference config is provided in `configs/sample_config.yaml`. The following op
 - **`enable_plots`** — Save loss curves and task‑specific plots.
 - **`task_filter`** — Specify tasks to evaluate (defaults to all available).
 - **`update_leaderboard`** — Aggregate results across runs.
-- **`output_fold_results`** — Also store per-fold metrics in the result JSON.
+- **`output_fold_results`** — Also store per-fold metrics in the result JSON. Default is False.
+- **`store_models`** — Store models from each task. Default is False. Retrains the model on all task data, using the best hyperparameters if HP optimization is done, before storing the model.
+- **`probe_type`** — Type of probe to use. Currently available are  `linear` (single-layer perceptron) and `svm` (polynomial kernel SVM). Default is `linear`.
+- **`probe_params`** - Key-value parameters for the probe. See below for details.
+
+#### Probe parameters
+- **`probe_params`** (**`probe_type = linear`**)
+  - **`batch_size`** — Batch size for linear probes. Default is 64.
+  - **`epochs`** - Number of epochs. Default is 10.
+  - **`learning_rate`** — Optimizer learning rate. Default is 0.001.
+- **`probe_params`** (**`probe_type = svm`**)
+  - **`C_start_end`** - List of min, max values for C parameter in hyperparameter optimization. Default range is [1e-6, 10].
+  - **`kernel_gamma_start_end`** - List of min, max values for gamma parameter. Default value is `[1e-6, 10]`. Note that **`kernel_gamma_start_end`** cannot be used if 1 is **`kernel_degree_list`**.
+  - **`kernel_degree_list`** - List of values for degree parameter. Default is `[1]`. Note that **`kernel_gamma_start_end`** cannot be used if 1 is in **`kernel_degree_list`**.
+  - **`opt_params`** - Dictionary with key-value arguments for BayesSearchCV. Do not use parameter `cv`, as this is controlled by NeuCo-Bench.
 
 ---
 
@@ -157,4 +168,29 @@ task_filter:
 ```yaml
 standardize_embeddings: false
 normalize_labels: false
+```
+
+### Working with stored models
+
+The stored models are provided with a load script to simplify use.
+A minimal example to access the model is:
+```python
+import importlib
+from pathlib import Path
+import sys
+
+model_folder = Path("/path/to/task/results/phase_name/method_name/task_name/model/")
+
+# Import the load_model functionality
+spec=importlib.util.spec_from_file_location("load_model", model_folder / "load_model.py")
+
+# creates a new module based on spec
+load_model = importlib.util.module_from_spec(spec, )
+
+# instantiate module
+sys.modules[spec.name] = load_model 
+spec.loader.exec_module(load_model)
+
+# Load model
+model, task_type = load_model.load_model(model_folder)
 ```

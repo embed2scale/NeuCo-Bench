@@ -1,5 +1,3 @@
-import argparse
-import json
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -8,7 +6,7 @@ import torch
 from data.embeddings import load_submission
 from data.labels import get_annotations
 from evaluation.linear_probing import cross_validate
-from evaluation.results import save_results, summarize_runs
+from evaluation.results import save_results
 from evaluation.utils import fix_all_seeds
 
 # Logging setup
@@ -83,15 +81,15 @@ def evaluate(submission_file: Path,
             task_type=task_type,
             task_name=task_name,
             device=device,
-            batch_size=config["batch_size"],
             n_splits=config["k_folds"],
-            epochs=config["epochs"],
             embedding_dim=embedding_dim,
-            learning_rate=config["learning_rate"],
             output_dir=run_dir,
             filename_prefix=submission_file.stem,
             enable_plots=config.get("enable_plots", True),
             output_fold_results=config.get("output_fold_results", False),
+            store_models=config.get('store_models', False),
+            probe_type=config.get("probe_type", 'linear'),
+            probe_params=config.get("probe_params", None),
         )
 
         task_q_scores[task_name] = result.q_statistic
@@ -100,6 +98,8 @@ def evaluate(submission_file: Path,
     save_results(experiment_name=experiment_name,
                  task_q_scores=task_q_scores,
                  task_acc_scores=task_acc_scores,
-                 output_dir=run_dir, config=config)
+                 output_dir=run_dir, 
+                 config=config,
+                 )
 
     logger.info("Finished evaluation.")

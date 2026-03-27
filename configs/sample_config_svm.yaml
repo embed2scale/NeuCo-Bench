@@ -1,0 +1,20 @@
+# Required configs
+k_folds: 40
+
+# Optional configs
+embedding_dim: null
+standardize_embeddings: true
+normalize_labels: true
+enable_plots: false
+update_leaderboard: false
+store_models: false
+task_filter: null #eg. ["biomass_mean", "biomass_std"]
+probe_type: "svm"
+probe_params: 
+  C_start_end: [0.000001, 10]
+  kernel_gamma_start_end: [0.000001, 10]
+  kernel_degree_start_end: [1, 2]
+  opt_folds: null
+  opt_n_iter: 50
+  opt_n_jobs: 1
+  opt_n_points: 1

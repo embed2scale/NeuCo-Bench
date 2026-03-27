@@ -24,6 +24,7 @@ def save_loss_curve(
     output_folder: Path,
     task_name: str,
     loss_type: str = "train",
+    xlabel: str = "Epoch",
 ) -> None:
     """
     Plot and save one or multiple loss curves (training and/or validation).
@@ -43,7 +44,7 @@ def save_loss_curve(
         ax.plot(curve, label=f"Curve {idx}") 
 
     ax.set_title(f"Loss Curves - {task_name} ({loss_type})")
-    ax.set_xlabel("Epoch")
+    ax.set_xlabel(xlabel)
     ax.set_ylabel("Loss")
     ax.grid(True)
 
@@ -54,12 +55,12 @@ def save_loss_curve(
 def plot_regression_scatter(
     y_train_true: Sequence[float],
     y_train_pred: Sequence[float],
-    y_val_true: Sequence[float],
-    y_val_pred: Sequence[float],
     task_name: str,
-    fold_idx: int,
     output_folder: Path,
     base_name: str,
+    fold_idx: int = None,
+    y_val_true: Sequence[float] = None,
+    y_val_pred: Sequence[float] = None,
 ) -> None:
     """
     Generate and save a scatter plot comparing true vs. predicted values for regression.
@@ -80,28 +81,35 @@ def plot_regression_scatter(
 
     # Plot training and validation points
     ax.scatter(y_train_true, y_train_pred, alpha=0.3, label="Train")
-    ax.scatter(y_val_true, y_val_pred, alpha=0.6, label="Validation")
+
+    if (y_val_true is not None) and (y_val_pred is not None):
+        ax.scatter(y_val_true, y_val_pred, alpha=0.6, label="Validation")
+        bounds = [min([min(y_train_true), min(y_val_true)]), 
+                  max([max(y_train_true), max(y_val_true)])]
+    else:
+        bounds = [min(y_train_true), max(y_train_true)]
 
     # Draw diagonal identity line
-    bounds = [min(min(y_train_true), min(y_val_true)), max(max(y_train_true), max(y_val_true))]
     ax.plot(bounds, bounds, linestyle='--', linewidth=3, color='green')
 
+    fold_plot_str = ", Fold {fold_idx + 1}" if fold_idx is not None else ""
     ax.set_xlabel("True values")
     ax.set_ylabel("Predicted values")
-    ax.set_title(f"Regression Scatter: {task_name}, Fold {fold_idx + 1}")
+    ax.set_title(f"Regression Scatter: {task_name}" + fold_plot_str)
     ax.legend(loc="best") 
 
     # Save figure
-    filename = f"{base_name}_{task_name}_scatter_fold{fold_idx + 1}.png"
+    fold_save_str = f"_fold{fold_idx + 1}" if fold_idx is not None else ""
+    filename = f"{base_name}_{task_name}_scatter{fold_save_str}.png"
     save_plot(fig, target_folder, filename)
 
 
 def plot_confusion_matrix(
     cm_array: np.ndarray,
     task_name: str,
-    fold_idx: int,
     output_folder: Path,
     base_name: str,
+    fold_idx: int = None,
 ) -> None:
     """
     Generate and save a confusion matrix plot for a classification task.
@@ -119,7 +127,8 @@ def plot_confusion_matrix(
 
     # Display confusion matrix
     im = ax.imshow(cm_array, interpolation="nearest", cmap=plt.cm.Blues)
-    ax.set_title(f"Confusion Matrix: {task_name}, Fold {fold_idx + 1}")
+    fold_plot_str = f", Fold {fold_idx + 1}" if fold_idx is not None else ""
+    ax.set_title(f"Confusion Matrix: {task_name}" + fold_plot_str)
     fig.colorbar(im, ax=ax)
 
     # Set tick labels
@@ -138,7 +147,8 @@ def plot_confusion_matrix(
     ax.set_ylabel("True label")
     
     # Save figure
-    filename = f"{base_name}_{task_name}_cm_fold{fold_idx + 1}.png"
+    fold_save_str = f"_fold{fold_idx + 1}"
+    filename = f"{base_name}_{task_name}_cm{fold_save_str}.png"
     save_plot(fig, target_folder, filename)
 
 
