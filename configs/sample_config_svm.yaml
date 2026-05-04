@@ -13,7 +13,7 @@ probe_type: "svm"
 probe_params: 
   C_start_end: [0.000001, 10]
   kernel_gamma_start_end: [0.000001, 10]
-  kernel_degree_start_end: [1, 2]
+  kernel_degree_list: [2,3]
   opt_folds: null
   opt_n_iter: 50
   opt_n_jobs: 1
