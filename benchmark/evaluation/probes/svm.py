@@ -65,8 +65,8 @@ class SVMHPOptimizer:
             enable_plots: bool, 
             C_start_end: list[float],
             kernel_degree_list: list[int],
-            kernel_gamma_start_end: Optional[list[float]] = None,
-            opt_params: Optional[dict[str, Any]] = None,
+            kernel_gamma_start_end: list[float] | None = None,
+            opt_params: dict[str, Any] | None = None,
             df: pd.DataFrame = None,
             ):
         """Train a polynomial SVM classifier or regressor using Bayesian hyperparameter optimization.
@@ -150,6 +150,20 @@ class SVMHPOptimizer:
             **opt_params,
         )
 
+    def prepare_targets(self, y):
+        """Prepare targets. 
+        Classification needs targets in [-1, 1] while we typically provide in [0, 1].
+        """
+
+        y_prep = np.copy(y)
+        if self.model_type == SVC:
+            # Ensure targets -1 and 1
+            if 0 in y_prep:
+                y_prep[y_prep == 0] = -1
+
+        return y_prep
+
+
     def fit_from_state(self, state, x=None, y=None):
         if (x is None) and (y is None):
             assert self.x is not None, f"Either training data must be provided or a dataframe should be provided during initialization but neither is provided."
@@ -160,10 +174,8 @@ class SVMHPOptimizer:
         # Ensure only single class
         assert len(y.shape) == 1, f"SVM handles single targets only. Got self.y shape {y.shape}."
 
-        # Ensure targets -1 and 1
-        y_svm = np.copy(y)
-        if 0 in y_svm:
-            y_svm[y_svm == 0] = -1
+        # Prepare targets
+        y_svm = self.prepare_targets(y)
 
         self.model = self.model_type(**state)
 
@@ -187,10 +199,8 @@ class SVMHPOptimizer:
         # Ensure only single class
         assert len(y.shape) == 1, f"Expected y to have shape (n_targets,), but got shape {y.shape}."
 
-        # Ensure targets -1 and 1
-        y_svm = np.copy(y)
-        if 0 in y_svm:
-            y_svm[y_svm == 0] = -1
+        # Prepare targets
+        y_svm = self.prepare_targets(y)
 
         # Fit with Bayesian Optimization
         self.opt.fit(x, y_svm)

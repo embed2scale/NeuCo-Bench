@@ -38,7 +38,7 @@ def load_submission(
     file_path: Path,
     valid_ids: Set[str],
     expected_dim: int | None = None,
-    exclude_file: Optional[Path] = None,
+    exclude_file: Path | None = None,
     standardize: bool = True,
 ) -> Tuple[pd.DataFrame, int]:
     """
