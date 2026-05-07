@@ -94,7 +94,7 @@ class SVMHPOptimizer:
             'kernel_gamma_start_end': kernel_gamma_start_end, 
             'opt_params': opt_params})
         
-        self.task_type = task_type
+        self.task_type = task_type.lower()
         self.task_name = task_name
         self.output_dir = output_dir
         self.filename_prefix = filename_prefix
@@ -110,11 +110,11 @@ class SVMHPOptimizer:
             self.x = None
             self.y = None
 
-        if task_type.lower() in ("classification", "cls"):
+        if self.task_type in ("classification", "cls"):
             self.model_type = SVC
             self.metric_fn = 'f1'
-            self.scoring_fn = 'neg_log_loss'
-        elif task_type.lower() in ("regression", "regr"):
+            self.scoring_fn = 'accuracy'
+        elif self.task_type in ("regression", "regr"):
             self.model_type = SVR
             self.metric_fn = 'r2'
             self.scoring_fn = 'neg_mean_squared_error'
@@ -152,14 +152,22 @@ class SVMHPOptimizer:
 
     def fit_from_state(self, state, x=None, y=None):
         if (x is None) and (y is None):
+            assert self.x is not None, f"Either training data must be provided or a dataframe should be provided during initialization but neither is provided."
+            assert self.y is not None, f"Either training labels must be provided or a dataframe should be provided during initialization but neither is provided."
             x = self.x
             y = self.y
-        self.model = self.model_type(**state)
 
         # Ensure only single class
         assert len(y.shape) == 1, f"SVM handles single targets only. Got self.y shape {y.shape}."
 
-        self.model.fit(x, y)
+        # Ensure targets -1 and 1
+        y_svm = np.copy(y)
+        if 0 in y_svm:
+            y_svm[y_svm == 0] = -1
+
+        self.model = self.model_type(**state)
+
+        self.model.fit(x, y_svm)
         return self.model
 
     def train(self, x=None, y=None) -> None:
@@ -171,15 +179,21 @@ class SVMHPOptimizer:
             y (np.ndarray, optional): Training targets of shape (n_samples,).
         """
         if (x is None) and (y is None):
-            assert self.x is not None, f"Either training data must be provided or a dataframe should be provided during initialization but neither is provided."
-            assert self.y is not None, f"Either training labels must be provided or a dataframe should be provided during initialization but neither is provided."
+            assert self.x is not None, f"Either training data must be provided or a dataframe should be provided during initialization."
+            assert self.y is not None, f"Either training labels must be provided or a dataframe should be provided during initialization."
             x = self.x
             y = self.y
+
         # Ensure only single class
-        assert len(y.shape) == 1, f"SVM handles single targets only. Got self.y shape {y.shape}."
+        assert len(y.shape) == 1, f"Expected y to have shape (n_targets,), but got shape {y.shape}."
+
+        # Ensure targets -1 and 1
+        y_svm = np.copy(y)
+        if 0 in y_svm:
+            y_svm[y_svm == 0] = -1
 
         # Fit with Bayesian Optimization
-        self.opt.fit(x, y)
+        self.opt.fit(x, y_svm)
 
         # Get best model
         self.model = self.opt.best_estimator_
@@ -196,6 +210,7 @@ class SVMHPOptimizer:
                         ]
         
         best_train_preds = self.model.predict(x)
+        best_train_preds[best_train_preds == -1] = 0
         
         if self.enable_plots:
             if self.task_type in ("classification", "cls"):
@@ -225,7 +240,7 @@ class SVMHPOptimizer:
         path.mkdir(parents=True, exist_ok=True)
 
         if self.model is None:
-            raise RuntimeError("Model has not been fitted yet. Call optimize_score() first.")
+            raise RuntimeError("Model has not been fitted yet. Call train() first.")
 
         # Save model via pickle
         with open(path / 'probe.pkl', 'wb') as f:

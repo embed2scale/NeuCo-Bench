@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+from torch import Tensor
 
 from sklearn.metrics import (
     accuracy_score,
@@ -17,7 +18,9 @@ def classification_metrics(
     y_true: List[int],
 ) -> Dict[str, Any]:
     
-    y_pred_cls = (y_pred >= 0).long()
+    y_pred_cls = (y_pred > 0)
+    if isinstance(y_pred_cls, Tensor):
+        y_pred_cls = y_pred_cls.long()
 
     metrics: Dict[str, Any] = {}
     metrics["f1"] = f1_score(y_true, y_pred_cls, average='binary')

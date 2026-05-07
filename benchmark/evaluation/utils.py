@@ -2,7 +2,7 @@ import random
 import numpy as np
 import torch
 from dataclasses import dataclass
-from typing import Optional, Any
+from typing import Any
 
 def fix_all_seeds(seed: int = 42):
     """
@@ -27,7 +27,7 @@ class FoldResult:
     metric_history: list[float]
     best_metric: float
     best_model_state: dict
-    model: Optional[Any] = None
+    model: Any | None = None
 
 
 @dataclass
@@ -36,4 +36,4 @@ class TaskResult:
     q_statistic: float
     mean_score: float
     std_dev: float
-    model: Optional[Any] = None
+    model: Any | None = None

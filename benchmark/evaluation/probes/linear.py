@@ -64,7 +64,7 @@ class LinearTrainer:
         
         Args:
             model: torch.Model to use in evaluation.
-            task_type: Type of task, either "classification" or "regression".
+            task_type: Type of task, either "classification", "cls",  or "regression", "regr".
             task_name: Name of task.
             device: Device, CPU or GPU, to run training and inference.
             learning_rate: Learning rate for Linear Probe training.
@@ -76,8 +76,7 @@ class LinearTrainer:
         """
 
         self.init_params = {'input_dim': embedding_dim}
-        self.model = LinearProbe(**self.init_params)
-        self.task_type = task_type
+        self.task_type = task_type.lower()
         self.task_name = task_name
         self.device = device
         self.fold_index = fold_index
@@ -85,24 +84,29 @@ class LinearTrainer:
         self.filename_prefix = filename_prefix
         self.enable_plots = enable_plots
         self.epochs = epochs
+        self.learning_rate = learning_rate
  
-        if task_type in ("classification", "cls"):
+        if self.task_type in ("classification", "cls"):
             self.loss_fn = nn.BCEWithLogitsLoss()
             self.metric_fn = BinaryF1Score().to(device)
-        elif task_type in ("regression", "regr"):
+        elif self.task_type in ("regression", "regr"):
             self.loss_fn = nn.MSELoss()
             self.metric_fn = R2Score().to(device)
         else:
             raise ValueError(f"Unsupported task_type: {task_type}")
 
-        self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=learning_rate)
+        self.model = LinearProbe(**self.init_params)
+        self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate)
+
+        self.model.to(self.device)
 
     def _step(
             self,
-            batch: tuple[torch.Tensor, torch.Tensor],
+            inputs: torch.Tensor,
+            targets: torch.Tensor,
             training: bool,
         ) -> tuple[torch.Tensor, torch.Tensor]:
-        inputs, targets = (tensor.to(self.device) for tensor in batch)
+        
         with torch.set_grad_enabled(training):
             preds = self.model(inputs)
             loss = self.loss_fn(preds, targets.float())
@@ -119,12 +123,14 @@ class LinearTrainer:
             ):
         if refit:
             self.model = LinearProbe(**self.init_params)
+            self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate)
 
         for _ in range(epochs):
             # Training phase
             self.model.train()
             for batch in data_loader:
-                _, _ = self._step(batch, training=True)
+                inputs, targets = (tensor.to(self.device) for tensor in batch)
+                _, _ = self._step(inputs, targets, training=True)
 
     def fit_evaluate(
             self,
@@ -151,15 +157,18 @@ class LinearTrainer:
         best_train_preds, best_train_targets = None, None
         best_val_preds, best_val_targets = None, None
 
+        self.model.to(self.device)
+
         for _ in range(epochs):
             # Training phase
             self.model.train()
             epoch_train_losses, train_preds, train_targets = [], [], []
             for batch in train_loader:
-                loss, preds = self._step(batch, training=True)
+                inputs, targets = (tensor.to(self.device) for tensor in batch)
+                loss, preds = self._step(inputs, targets, training=True)
                 epoch_train_losses.append(loss)
                 train_preds.append(preds)
-                train_targets.append(batch[1])
+                train_targets.append(targets)
             train_losses.append(torch.stack(epoch_train_losses).mean().item())
 
             if val_loader is not None:
@@ -168,10 +177,11 @@ class LinearTrainer:
                 epoch_val_losses, val_preds, val_targets = [], [], []
                 with torch.no_grad():
                     for batch in val_loader:
-                        loss, preds = self._step(batch, training=False)
+                        inputs, targets = (tensor.to(self.device) for tensor in batch)
+                        loss, preds = self._step(inputs, targets, training=False)
                         epoch_val_losses.append(loss)
                         val_preds.append(preds)
-                        val_targets.append(batch[1])
+                        val_targets.append(targets)
                 val_losses.append(torch.stack(epoch_val_losses).mean().item())
                 
                 # Compute metric on validation data
@@ -300,14 +310,14 @@ class LinearFoldRunner():
         # Validate probe parameters
         validate_config(probe_params)
 
-        self.task_type = task_type
+        self.task_type = task_type.lower()
         self.task_name = task_name
         self.device = device
         self.output_dir = output_dir
         self.filename_prefix = filename_prefix
         self.enable_plots = enable_plots
         self.embedding_dim = embedding_dim
-        self.probe_params = probe_params
+        self.probe_params = dict(probe_params)
         self.splitter = splitter
         self.store_probes = store_probes
         
