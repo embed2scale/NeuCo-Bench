@@ -12,6 +12,48 @@ from evaluation.metrics import classification_metrics
 from evaluation.visualisations import plot_confusion_matrix, plot_regression_scatter
 from evaluation.utils import FoldResult
 
+
+REQUIRED_TRAINER_PARAMETERS = ['C_start_end', 'kernel_degree_list']
+
+
+def validate_config(probe_params: dict):
+    """Validates that `probe_params` configurations are ok.
+    
+    Args:
+        probe_params (dict): Configuration dictionary with probe parameters
+    """
+
+    for p in REQUIRED_TRAINER_PARAMETERS:
+        assert p in probe_params, f"Parameter `{p}` missing from `probe_params`."
+    
+    if 'opt_params' in probe_params:
+        assert 'cv' not in probe_params['opt_params'], f"Parameter `cv` must not be provided in probe_params['opt_params']."
+
+    # check kernel_degree_list type
+    assert isinstance(probe_params['kernel_degree_list'], (int, list)), f"`kernel_degree_list` must be integer or list but got {type(probe_params['kernel_degree_list'])}."
+    if isinstance(probe_params['kernel_degree_list'], list):
+        for d in probe_params['kernel_degree_list']:
+            assert isinstance(d, int), f"Kernel degrees must be integers but got {type(d)} (kernel_degree_lilst: {probe_params['kernel_degree_list']})"
+
+    # C_start_end checks
+    assert isinstance(probe_params['C_start_end'], (list, tuple)), F"`C_start_end` must be list, but got {type(probe_params['C_start_end'])}."
+    assert len(probe_params['C_start_end']) == 2, f"`C_start_end` must have exactly two elements."
+    assert probe_params['C_start_end'][0] < probe_params['C_start_end'][1], f"`C_start_end` must be formatted [minimum C, maximum C] but got {probe_params['C_start_end']}."
+
+    # kernel_gamma_start_end checks
+    kernel_gamma_start_end = probe_params.get('kernel_gamma_start_end', None)
+    if kernel_gamma_start_end is not None:
+        assert isinstance(probe_params['kernel_gamma_start_end'], (list, tuple)), f"`kernel_gamma_start_end` must be list, but got {type(probe_params['kernel_gamma_start_end'])}."
+        assert len(probe_params['kernel_gamma_start_end']) == 2, f"`kernel_gamma_start_end` must have exactly two elements."
+        assert probe_params['kernel_gamma_start_end'][0] < probe_params['kernel_gamma_start_end'][1], f"`kernel_gamma_start_end` must be formatted [minimum gamma, maximum gamma] but got {type(probe_params['kernel_gamma_start_end'])}."
+
+        # Ensure kernel degree is never 1 if we optimize for gamma.
+        kernel_degree_list = probe_params['kernel_degree_list']
+        if isinstance(kernel_degree_list, int):
+            kernel_degree_list = [kernel_degree_list]
+        assert 1 not in kernel_degree_list, f"Cannot optimize gamma if kernel degree is 1. Exclude kernel degree 1 from kernel_degree_list ({kernel_degree_list}) or exclude input kernel_gamma_start_end."
+
+
 class SVMHPOptimizer:
     def __init__(
             self,
@@ -21,11 +63,11 @@ class SVMHPOptimizer:
             filename_prefix: str,
             splitter: Callable, 
             enable_plots: bool, 
-            df: pd.DataFrame = None,
-            C_start_end: Optional[list[float]] = None,
-            kernel_degree_list: Optional[list[int]] = None,
+            C_start_end: list[float],
+            kernel_degree_list: list[int],
             kernel_gamma_start_end: Optional[list[float]] = None,
             opt_params: Optional[dict[str, Any]] = None,
+            df: pd.DataFrame = None,
             ):
         """Train a polynomial SVM classifier or regressor using Bayesian hyperparameter optimization.
 
@@ -36,13 +78,22 @@ class SVMHPOptimizer:
             filename_prefix (str): Prefix for the filenames used in the output directory.
             splitter (Callable): Splitter used for validation statistics, e.g. sklearn.model_selection.ShuffleSplit.
             enable_plots (bool): Whether to generate plots or not. Default is False.
-            df (pd.DataFrame, optional): Dataframe to use for training and validation.
-            C_start_end (list[float], optional): List of start and end values for C hyperparameter. Defaults to None.
-            kernel_degree_list (list[int], optional): List of kernel degrees to evaluate. Defaults to [1]. Note that `kernel_gamma_start_end` cannot be used if 1 is in `kernel_degree list`.
+            C_start_end (list[float]): List of start and end values for C hyperparameter.
+            kernel_degree_list (list[int]): List of kernel degrees to evaluate. Note that `kernel_gamma_start_end` cannot be used if 1 is in `kernel_degree list`.
             kernel_gamma_start_end (list[float], optional): List of start and end values for gamma hyperparameter. Defaults to [1e-6, 10]. Note that `kernel_gamma_start_end` cannot be used if 1 is in `kernel_degree list`.
             opt_params (dict[str, Any], optional): Keyword input arguments for skopt.BayesSearchCV.
+            df (pd.DataFrame, optional): Dataframe to use for training and validation.
         """
 
+        if opt_params is None:
+            opt_params = {}
+
+        # Validate probe parameters
+        validate_config({'C_start_end': C_start_end, 
+            'kernel_degree_list': kernel_degree_list, 
+            'kernel_gamma_start_end': kernel_gamma_start_end, 
+            'opt_params': opt_params})
+        
         self.task_type = task_type
         self.task_name = task_name
         self.output_dir = output_dir
@@ -51,7 +102,6 @@ class SVMHPOptimizer:
         self.splitter = splitter
         self.model = None
         self.best_state = None
-        self.is_optimized = False
 
         if df is not None:
             self.x = np.stack(df['embedding'].to_numpy())
@@ -74,12 +124,7 @@ class SVMHPOptimizer:
         model = self.model_type()
 
         # Define parameter search space
-        if C_start_end is None:
-            C_start_end = [1e-6, 1e1]
-
-        if kernel_degree_list is None:
-            kernel_degree_list = [1]
-        elif isinstance(kernel_degree_list, int):
+        if isinstance(kernel_degree_list, int):
             kernel_degree_list = [kernel_degree_list]
 
         degree_space = Categorical(kernel_degree_list)
@@ -89,7 +134,7 @@ class SVMHPOptimizer:
                 'kernel': Categorical(['poly']),
             }
         if 1 in kernel_degree_list:
-            assert kernel_gamma_start_end is None, f"Cannot optimize gamma if kernel degree is one. Exclude kernel degree 1 from kernel_degree_list ({kernel_degree_list}) or input kernel_gamma_start_end."
+            assert kernel_gamma_start_end is None, f"Cannot optimize gamma if kernel degree is 1. Exclude kernel degree 1 from kernel_degree_list ({kernel_degree_list}) or exclude input kernel_gamma_start_end."
         else:
             if kernel_gamma_start_end is None:
                 kernel_gamma_start_end = [1e-6, 1e1]
@@ -126,6 +171,8 @@ class SVMHPOptimizer:
             y (np.ndarray, optional): Training targets of shape (n_samples,).
         """
         if (x is None) and (y is None):
+            assert self.x is not None, f"Either training data must be provided or a dataframe should be provided during initialization but neither is provided."
+            assert self.y is not None, f"Either training labels must be provided or a dataframe should be provided during initialization but neither is provided."
             x = self.x
             y = self.y
         # Ensure only single class
@@ -181,7 +228,7 @@ class SVMHPOptimizer:
             raise RuntimeError("Model has not been fitted yet. Call optimize_score() first.")
 
         # Save model via pickle
-        with open(path / 'model.pkl', 'wb') as f:
+        with open(path / 'probe.pkl', 'wb') as f:
             pickle.dump(self.model, f)
 
         # Save metadata
@@ -193,7 +240,7 @@ class SVMHPOptimizer:
             json.dump(metadata, f, indent=2)
 
         # Write load script
-        load_script = path / 'load_model.py'
+        load_script = path / 'load_probe.py'
         if not load_script.exists():
             load_script.write_text(f'''# -*- coding: utf-8 -*-
 """Auto-generated, self-contained script to load the saved SVM model."""
@@ -207,21 +254,21 @@ def load_model(checkpoint_path: Path):
     """Load a saved SVM model.
 
     Args:
-        checkpoint_path: Path to the directory containing model.pkl and metadata.json.
+        checkpoint_path: Path to the directory containing probe.pkl and metadata.json.
 
     Returns:
         Tuple of (model, task_type).
     """
     checkpoint_path = Path(checkpoint_path)
 
-    with open(checkpoint_path / "model.pkl", "rb") as f:
-        model = pickle.load(f)
+    with open(checkpoint_path / "probe.pkl", "rb") as f:
+        probe = pickle.load(f)
 
     with open(checkpoint_path / "metadata.json", "r") as f:
         metadata = json.load(f)
 
     task_type = metadata["task_type"]
-    return model, task_type
+    return probe, task_type
 
 ''')
     

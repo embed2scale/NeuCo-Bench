@@ -84,15 +84,15 @@ def plot_regression_scatter(
 
     if (y_val_true is not None) and (y_val_pred is not None):
         ax.scatter(y_val_true, y_val_pred, alpha=0.6, label="Validation")
-        bounds = [min([min(y_train_true), min(y_val_true)]), 
-                  max([max(y_train_true), max(y_val_true)])]
+        bounds = [min(min(y_train_true), min(y_val_true)), 
+                  max(max(y_train_true), max(y_val_true))]
     else:
         bounds = [min(y_train_true), max(y_train_true)]
 
     # Draw diagonal identity line
     ax.plot(bounds, bounds, linestyle='--', linewidth=3, color='green')
 
-    fold_plot_str = ", Fold {fold_idx + 1}" if fold_idx is not None else ""
+    fold_plot_str = f", Fold {fold_idx + 1}" if fold_idx is not None else ""
     ax.set_xlabel("True values")
     ax.set_ylabel("Predicted values")
     ax.set_title(f"Regression Scatter: {task_name}" + fold_plot_str)
@@ -121,6 +121,7 @@ def plot_confusion_matrix(
         output_folder: Root folder for saving results.
         base_name: Base filename prefix.
     """
+
     # Build target directory
     target_folder = output_folder / task_name / "confusion_matrices"
     fig, ax = plt.subplots(figsize=(6, 5))
@@ -147,7 +148,7 @@ def plot_confusion_matrix(
     ax.set_ylabel("True label")
     
     # Save figure
-    fold_save_str = f"_fold{fold_idx + 1}"
+    fold_save_str = f"_fold{fold_idx + 1}" if fold_idx is not None else ""
     filename = f"{base_name}_{task_name}_cm{fold_save_str}.png"
     save_plot(fig, target_folder, filename)
 

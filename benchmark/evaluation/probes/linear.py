@@ -15,6 +15,25 @@ from evaluation.metrics import classification_metrics
 from evaluation.utils import FoldResult
 from evaluation.visualisations import plot_confusion_matrix, plot_regression_scatter
 
+
+REQUIRED_TRAINER_PARAMETERS = ['learning_rate', 'batch_size', 'epochs']
+
+
+def validate_config(probe_params: dict):
+    """Validates that `probe_params` configurations are ok.
+    
+    Args:
+        probe_params (dict): Configuration dictionary with probe parameters
+    """
+    
+    for p in REQUIRED_TRAINER_PARAMETERS:
+        assert p in probe_params, f"Parameter `{p}` missing from `probe_params`."
+
+    # device checks
+    if 'device' in probe_params:
+        assert isinstance(probe_params['device'], str), f"`device` must be a string but got {type(probe_params['device'])}."
+
+
 class LinearProbe(nn.Module):
     """Linear model for downstream tasks."""
 
@@ -24,7 +43,6 @@ class LinearProbe(nn.Module):
 
     def forward(self, features: torch.Tensor) -> torch.Tensor:
         return self.linear(features).view(-1)
-
 
 class LinearTrainer:
     """Train and evaluate a single fold."""
@@ -39,8 +57,8 @@ class LinearTrainer:
                 output_dir: Path,
                 filename_prefix: str,
                 enable_plots: bool,
-                learning_rate: float = 0.001,
-                epochs: int = 10,
+                learning_rate: float,
+                epochs: int,
             ) -> None:
         """Train and evaluate a single fold.
         
@@ -208,10 +226,10 @@ class LinearTrainer:
             'input_dim': self.model.linear.in_features,
             'output_dim': self.model.linear.out_features,
             'task_type': self.task_type,
-        }, path / 'model.pth')
+        }, path / 'probe.pth')
 
         # Write load script (embeds LinearProbe source for portability)
-        load_script = path / 'load_model.py'
+        load_script = path / 'load_probe.py'
         if not load_script.exists():
             import inspect
             linear_source = inspect.getsource(LinearProbe)
@@ -225,11 +243,11 @@ import torch.nn as nn
 {linear_source}
 
 
-def load_model(checkpoint_path: Path, device: torch.device = None) -> tuple:
+def load_probe(checkpoint_path: Path, device: torch.device = None) -> tuple:
     """Load a saved linear probe model.
 
     Args:
-        checkpoint_path: Path to the directory containing model.pth and load_model.py.
+        checkpoint_path: Path to the directory containing probe.pth and load_probe.py.
         device: Device to load the model onto. Defaults to cuda if available.
 
     Returns:
@@ -239,14 +257,14 @@ def load_model(checkpoint_path: Path, device: torch.device = None) -> tuple:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     checkpoint_path = Path(checkpoint_path)
-    checkpoint = torch.load(checkpoint_path / "model.pth", map_location=device)
+    checkpoint = torch.load(checkpoint_path / "probe.pth", map_location=device)
 
-    model = LinearProbe(checkpoint["input_dim"])
-    model.load_state_dict(checkpoint["state_dict"])
-    model = model.to(device)
-    model.eval()
+    probe = LinearProbe(checkpoint["input_dim"])
+    probe.load_state_dict(checkpoint["state_dict"])
+    probe = probe.to(device)
+    probe.eval()
 
-    return model, checkpoint["task_type"]
+    return probe, checkpoint["task_type"]
 
 
 if __name__ == "__main__":
@@ -256,9 +274,9 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint", type=Path, required=True,
                         help="Path to the checkpoint directory.")
     args = parser.parse_args()
-    model, task_type = load_model(args.checkpoint.resolve())
+    probe, task_type = load_probe(args.checkpoint.resolve())
     print(f"Model loaded. Task type: {{task_type}}")
-    print(f"Model device: {{next(model.parameters()).device}}")
+    print(f"Model device: {{next(probe.parameters()).device}}")
 ''')
     
 
@@ -276,9 +294,12 @@ class LinearFoldRunner():
                embedding_dim,
                probe_params,
                splitter,
-               store_models,
+               store_probes,
                ):
-        
+
+        # Validate probe parameters
+        validate_config(probe_params)
+
         self.task_type = task_type
         self.task_name = task_name
         self.device = device
@@ -288,16 +309,16 @@ class LinearFoldRunner():
         self.embedding_dim = embedding_dim
         self.probe_params = probe_params
         self.splitter = splitter
-        self.store_models = store_models
+        self.store_probes = store_probes
         
         self.dataset = EmbeddingDataset(df)
         self.trainer = None
         
-        self.batch_size = self.probe_params.pop('batch_size', 64)
-        self.epochs = self.probe_params.get('epochs', 10)
+        self.batch_size = self.probe_params.pop('batch_size')
+        self.epochs = self.probe_params['epochs']
 
         self.hyperparams = {'epochs':self.epochs,
-                            'learning_rate': self.probe_params.get('learning_rate', 0.001),
+                            'learning_rate': self.probe_params['learning_rate'],
                             'batch_size': self.batch_size,
                             }
 
@@ -348,7 +369,7 @@ class LinearFoldRunner():
             self.trainer = trainer
 
         # Retrain on all data
-        if self.store_models:
+        if self.store_probes:
             data_loader = DataLoader(
                 self.dataset,
                 batch_size=self.batch_size,

@@ -1,5 +1,18 @@
 # Required configs
 k_folds: 40
+probe_type: "svm"
+probe_params: 
+  C_start_end: [0.000001, 10]
+  kernel_gamma_start_end: [0.000001, 10]
+  kernel_degree_list: [2, 3]
+  opt_params:
+    n_iter: 50
+    n_jobs: 1
+    n_points: 5
+    optimizer_kwargs:
+      base_estimator: "RF"
+      n_initial_points: 5
+    verbose: 1
 
 # Optional configs
 embedding_dim: null
@@ -7,14 +20,5 @@ standardize_embeddings: true
 normalize_labels: true
 enable_plots: false
 update_leaderboard: false
-store_models: false
+store_probes: false
 task_filter: null #eg. ["biomass_mean", "biomass_std"]
-probe_type: "svm"
-probe_params: 
-  C_start_end: [0.000001, 10]
-  kernel_gamma_start_end: [0.000001, 10]
-  kernel_degree_list: [2,3]
-  opt_folds: null
-  opt_n_iter: 50
-  opt_n_jobs: 1
-  opt_n_points: 1
