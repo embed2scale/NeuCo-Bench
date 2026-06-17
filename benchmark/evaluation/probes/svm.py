@@ -40,6 +40,19 @@ def validate_config(probe_params: dict):
     assert len(probe_params['C_start_end']) == 2, f"`C_start_end` must have exactly two elements."
     assert probe_params['C_start_end'][0] < probe_params['C_start_end'][1], f"`C_start_end` must be formatted [minimum C, maximum C] but got {probe_params['C_start_end']}."
 
+    # kernel_coef0_start_end checks
+    kernel_coef0_start_end = probe_params.get('kernel_coef0_start_end', None)
+    if kernel_coef0_start_end is not None:
+        assert isinstance(probe_params['kernel_coef0_start_end'], (list, tuple)), f"`kernel_coef0_start_end` must be list, but got {type(probe_params['kernel_coef0_start_end'])}."
+        assert len(probe_params['kernel_coef0_start_end']) == 2, f"`kernel_coef0_start_end` must have exactly two elements."
+        assert probe_params['kernel_coef0_start_end'][0] < probe_params['kernel_coef0_start_end'][1], f"`kernel_coef0_start_end` must be formatted [minimum gamma, maximum gamma] but got {type(probe_params['kernel_coef0_start_end'])}."
+
+        # Ensure kernel degree is never 1 if we optimize for gamma.
+        kernel_degree_list = probe_params['kernel_degree_list']
+        if isinstance(kernel_degree_list, int):
+            kernel_degree_list = [kernel_degree_list]
+        assert 1 not in kernel_degree_list, f"Cannot optimize coef0 if kernel degree is 1. Exclude kernel degree 1 from kernel_degree_list ({kernel_degree_list}) or exclude input kernel_coef0_start_end."
+
     # kernel_gamma_start_end checks
     kernel_gamma_start_end = probe_params.get('kernel_gamma_start_end', None)
     if kernel_gamma_start_end is not None:
@@ -65,6 +78,7 @@ class SVMHPOptimizer:
             enable_plots: bool, 
             C_start_end: list[float],
             kernel_degree_list: list[int],
+            kernel_coef0_start_end: list[float] | None = None,
             kernel_gamma_start_end: list[float] | None = None,
             opt_params: dict[str, Any] | None = None,
             df: pd.DataFrame = None,
@@ -80,7 +94,8 @@ class SVMHPOptimizer:
             enable_plots (bool): Whether to generate plots or not. Default is False.
             C_start_end (list[float]): List of start and end values for C hyperparameter.
             kernel_degree_list (list[int]): List of kernel degrees to evaluate. Note that `kernel_gamma_start_end` cannot be used if 1 is in `kernel_degree list`.
-            kernel_gamma_start_end (list[float], optional): List of start and end values for gamma hyperparameter. Defaults to [1e-6, 10]. Note that `kernel_gamma_start_end` cannot be used if 1 is in `kernel_degree list`.
+            kernel_coef0_start_end (list[int], optional): Start and end values for the independent term in the polynomial kernel, often denoted r in (r + xTx)^d. Defaults to not being used. Note that `kernel_coef0_start_end` cannot be used if 1 is in `kernel_degree list`.
+            kernel_gamma_start_end (list[float], optional): List of start and end values for gamma hyperparameter. Defaults to not being used. Note that `kernel_gamma_start_end` cannot be used if 1 is in `kernel_degree list`.
             opt_params (dict[str, Any], optional): Keyword input arguments for skopt.BayesSearchCV.
             df (pd.DataFrame, optional): Dataframe to use for training and validation.
         """
@@ -91,6 +106,7 @@ class SVMHPOptimizer:
         # Validate probe parameters
         validate_config({'C_start_end': C_start_end, 
             'kernel_degree_list': kernel_degree_list, 
+            'kernel_coef0_start_end': kernel_coef0_start_end,
             'kernel_gamma_start_end': kernel_gamma_start_end, 
             'opt_params': opt_params})
         
@@ -133,13 +149,14 @@ class SVMHPOptimizer:
                 'degree': degree_space,
                 'kernel': Categorical(['poly']),
             }
-        if 1 in kernel_degree_list:
-            assert kernel_gamma_start_end is None, f"Cannot optimize gamma if kernel degree is 1. Exclude kernel degree 1 from kernel_degree_list ({kernel_degree_list}) or exclude input kernel_gamma_start_end."
-        else:
-            if kernel_gamma_start_end is None:
-                kernel_gamma_start_end = [1e-6, 1e1]
+        
+        if kernel_gamma_start_end is not None:
             self.param_space['gamma'] = Real(kernel_gamma_start_end[0], kernel_gamma_start_end[1], prior='log-uniform')
+        
+        if kernel_coef0_start_end is not None:
+            self.param_space['coef0'] = Real(kernel_coef0_start_end[0], kernel_coef0_start_end[1], prior='uniform')
 
+        
         self.opt = BayesSearchCV(
             model,
             self.param_space,
