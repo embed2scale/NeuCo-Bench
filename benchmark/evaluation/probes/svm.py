@@ -292,8 +292,8 @@ import json
 import numpy as np
 
 
-def load_model(checkpoint_path: Path):
-    """Load a saved SVM model.
+def load_probe(checkpoint_path: Path):
+    """Load a saved SVM probe.
 
     Args:
         checkpoint_path: Path to the directory containing probe.pkl and metadata.json.
