@@ -3,6 +3,7 @@ k_folds: 40
 probe_type: "svm"
 probe_params: 
   C_start_end: [0.001, 1000]
+  epsilon_list: [0.01, 0.05, 0.1, 0.5]
   kernel_degree_list: [2, 3]
   kernel_gamma_start_end: [0.0001, 10]
   kernel_coef0_start_end: [-1, 2]

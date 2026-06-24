@@ -92,8 +92,8 @@ Reference configs are provided in `configs/`. The following options control the 
   - **`kernel_degree_list`** (Required) — Integer or list of values for degree parameter. Note that **`kernel_gamma_start_end`** cannot be used if 1 is in **`kernel_degree_list`** as it messes with the optimization.
   - **`kernel_coef0_start_end`** (optional) List of min, max values for coef0 parameter in hyperparameter optimization. Note that **`kernel_coef0_start_end`** cannot be used if 1 is in **`kernel_degree_list`** as it messes with the optimization.
   - **`kernel_gamma_start_end`** (Optional) — List of min, max values for gamma parameter. Default value is `[1e-6, 10]`. Note that **`kernel_gamma_start_end`** cannot be used if 1 is in **`kernel_degree_list`** as it messes with the optimization.
+  - **`epsilon_list`** (Optional) — List of values for epsilon hyperparameter in Suppoert vector regression problems. Ignored for classification tasks.
   - **`opt_params`** (Optional) — Dictionary with key-value arguments for BayesSearchCV. Do not use parameter `cv`, as this is controlled by NeuCo-Bench.
-
 ---
 
 ## Q-Score

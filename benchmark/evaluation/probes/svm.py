@@ -1,5 +1,6 @@
 import json
 import pickle
+import logging
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -12,6 +13,9 @@ from evaluation.metrics import classification_metrics
 from evaluation.visualisations import plot_confusion_matrix, plot_regression_scatter
 from evaluation.utils import FoldResult
 
+# Logging setup
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("benchmarking")
 
 REQUIRED_TRAINER_PARAMETERS = ['C_start_end', 'kernel_degree_list']
 
@@ -39,6 +43,17 @@ def validate_config(probe_params: dict):
     assert isinstance(probe_params['C_start_end'], (list, tuple)), F"`C_start_end` must be list, but got {type(probe_params['C_start_end'])}."
     assert len(probe_params['C_start_end']) == 2, f"`C_start_end` must have exactly two elements."
     assert probe_params['C_start_end'][0] < probe_params['C_start_end'][1], f"`C_start_end` must be formatted [minimum C, maximum C] but got {probe_params['C_start_end']}."
+
+    # epsilon checks
+    epsilon_list = probe_params.get('epsilon_list', None)
+    if epsilon_list is not None:
+        assert isinstance(epsilon_list, (list, float)), f"`epsilon_list` must be float or list but got {type(epsilon_list)}."
+        
+        if isinstance(epsilon_list, float):
+            all_positive = epsilon_list > 0
+        else:
+            all_positive = all([e > 0 for e in epsilon_list])
+        assert all_positive, f"All epsilon_list values must be positive but got {epsilon_list}."
 
     # kernel_coef0_start_end checks
     kernel_coef0_start_end = probe_params.get('kernel_coef0_start_end', None)
@@ -80,6 +95,7 @@ class SVMHPOptimizer:
             kernel_degree_list: list[int],
             kernel_coef0_start_end: list[float] | None = None,
             kernel_gamma_start_end: list[float] | None = None,
+            epsilon_list: list[float] | None = None,
             opt_params: dict[str, Any] | None = None,
             df: pd.DataFrame = None,
             ):
@@ -96,6 +112,7 @@ class SVMHPOptimizer:
             kernel_degree_list (list[int]): List of kernel degrees to evaluate. Note that `kernel_gamma_start_end` cannot be used if 1 is in `kernel_degree list`.
             kernel_coef0_start_end (list[int], optional): Start and end values for the independent term in the polynomial kernel, often denoted r in (r + xTx)^d. Defaults to not being used. Note that `kernel_coef0_start_end` cannot be used if 1 is in `kernel_degree list`.
             kernel_gamma_start_end (list[float], optional): List of start and end values for gamma hyperparameter. Defaults to not being used. Note that `kernel_gamma_start_end` cannot be used if 1 is in `kernel_degree list`.
+            epsilon_list (list[float], optional): List of values for epsilon hyperparameter for Support Vector Regression. Ignored for classification tasks.
             opt_params (dict[str, Any], optional): Keyword input arguments for skopt.BayesSearchCV.
             df (pd.DataFrame, optional): Dataframe to use for training and validation.
         """
@@ -105,10 +122,11 @@ class SVMHPOptimizer:
 
         # Validate probe parameters
         validate_config({'C_start_end': C_start_end, 
-            'kernel_degree_list': kernel_degree_list, 
-            'kernel_coef0_start_end': kernel_coef0_start_end,
-            'kernel_gamma_start_end': kernel_gamma_start_end, 
-            'opt_params': opt_params})
+                         'kernel_degree_list': kernel_degree_list, 
+                         'kernel_coef0_start_end': kernel_coef0_start_end,
+                         'kernel_gamma_start_end': kernel_gamma_start_end,
+                         'epsilon_list': epsilon_list,
+                         'opt_params': opt_params})
         
         self.task_type = task_type.lower()
         self.task_name = task_name
@@ -142,8 +160,8 @@ class SVMHPOptimizer:
         # Define parameter search space
         if isinstance(kernel_degree_list, int):
             kernel_degree_list = [kernel_degree_list]
-
         degree_space = Categorical(kernel_degree_list)
+
         self.param_space = {
                 'C': Real(C_start_end[0], C_start_end[1], prior='log-uniform'),
                 'degree': degree_space,
@@ -155,6 +173,14 @@ class SVMHPOptimizer:
         
         if kernel_coef0_start_end is not None:
             self.param_space['coef0'] = Real(kernel_coef0_start_end[0], kernel_coef0_start_end[1], prior='uniform')
+
+        if epsilon_list is not None:
+            if task_type in ("regression", "regr"):
+                if isinstance(epsilon_list, float):
+                    epsilon_list = [epsilon_list]
+                self.param_space['epsilon'] = Categorical(epsilon_list)
+            else:
+                logger.info(f"Ignoring hyperparameters epsilon_list in task {task_name}. Epsilon is only used in Support Vector Regression but {task_name} is {task_type}")
 
         
         self.opt = BayesSearchCV(
@@ -237,7 +263,8 @@ class SVMHPOptimizer:
                         ]
         
         best_train_preds = self.model.predict(x)
-        best_train_preds[best_train_preds == -1] = 0
+        if self.task_type in ("classification", "cls"):
+            best_train_preds[best_train_preds == -1] = 0
         
         if self.enable_plots:
             if self.task_type in ("classification", "cls"):
