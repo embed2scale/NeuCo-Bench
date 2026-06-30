@@ -3,7 +3,7 @@
 [![Docs](https://img.shields.io/badge/docs-MkDocs-526CFE?logo=materialformkdocs&logoColor=fff)](https://embed2scale.github.io/NeuCo-Bench/)  
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-**TL;DR**: *Originally developed to evaluate challenge submissions for the 2025 EARTHVISION Challenge at CVPR ([competition details](https://www.grss-ieee.org/events/earthvision-2025/?tab=challenge)), NeuCo-Bench is now released for local benchmarking and evaluation - additional tech details in [http://arxiv.org/html/2510.17914](http://arxiv.org/html/2510.17914).*
+**TL;DR**: *Originally developed to evaluate challenge submissions for the 2025 EARTHVISION Challenge at CVPR ([competition details](https://www.grss-ieee.org/events/earthvision-2025/?tab=challenge)), NeuCo-Bench is now released for local benchmarking and evaluation - additional tech details in [the NeuCo-Bench paper](https://openaccess.thecvf.com/content/CVPR2026W/EarthVision/html/Vinge_NeuCo-Bench_A_Novel_Benchmark_Framework_for_Neural_Embeddings_in_Earth_CVPRW_2026_paper.html).*
 
 ---
 
@@ -156,13 +156,12 @@ For details on how to contribute, please see [CONTRIBUTING.md](.github/CONTRIBUT
 ## How to cite
 
 ```BibTeX
-@article{Vinge2025NeuCoBench,
-  author       = {Rikard Vinge and Isabelle Wittmann and Jannik Schneider and Michael Marszalek and Luis Gilch and Thomas Brunschwiler and Conrad M Albrecht},
-  title        = {NeuCo-Bench: A Novel Benchmark Framework for Neural Embeddings in Earth Observation},
-  journal      = {arXiv preprint arXiv:2510.17914},
-  year         = {2025},
-  url          = {https://arxiv.org/abs/2510.17914},
-  doi          = {10.48550/arXiv.2510.17914},
-  note         = {Submitted on 19 Oct 2025},
+@InProceedings{Vinge_2026_CVPR,
+    author    = {Vinge, Rikard and Wittmann, Isabelle and Schneider, Jannik and Marszalek, Michael and Gilch, Luis and Brunschwiler, Thomas and Albrecht, Conrad M},
+    title     = {NeuCo-Bench: A Novel Benchmark Framework for Neural Embeddings in Earth Observation},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops},
+    month     = {June},
+    year      = {2026},
+    pages     = {8063-8074}
 }
 ```

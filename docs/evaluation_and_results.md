@@ -89,9 +89,9 @@ Reference configs are provided in `configs/`. The following options control the 
   - **`device`** (Optional) — Device to train probe on. Either `gpu`, `cpu` or `auto`. Default is "auto", which picks GPU if it exists and otherwise CPU.
 - **`probe_params`** (**`probe_type = svm`**)
   - **`C_start_end`** (Required) — List of min, max values for C parameter in hyperparameter optimization.
-  - **`kernel_degree_list`** (Required) — Integer or list of values for degree parameter. Note that **`kernel_gamma_start_end`** cannot be used if 1 is in **`kernel_degree_list`** as it messes with the optimization.
-  - **`kernel_coef0_start_end`** (optional) List of min, max values for coef0 parameter in hyperparameter optimization. Note that **`kernel_coef0_start_end`** cannot be used if 1 is in **`kernel_degree_list`** as it messes with the optimization.
-  - **`kernel_gamma_start_end`** (Optional) — List of min, max values for gamma parameter. Default value is `[1e-6, 10]`. Note that **`kernel_gamma_start_end`** cannot be used if 1 is in **`kernel_degree_list`** as it messes with the optimization.
+  - **`kernel_degree_list`** (Required) — Integer or list of values for degree parameter. Note that **`kernel_coef0_start_end`** nor **`kernel_gamma_start_end`** cannot be used if 1 is in **`kernel_degree_list`** as it messes with the optimization.
+  - **`kernel_coef0_start_end`** (optional) List of min, max values for coef0 parameter in hyperparameter optimization. Note that **`kernel_coef0_start_end`** cannot be used if 1 is in **`kernel_degree_list`**, see **`kernel_degree_list`**.
+  - **`kernel_gamma_start_end`** (Optional) — List of min, max values for gamma parameter. Note that **`kernel_gamma_start_end`** cannot be used if 1 is in **`kernel_degree_list`**, see **`kernel_degree_list`**.
   - **`epsilon_list`** (Optional) — List of values for epsilon hyperparameter in Suppoert vector regression problems. Ignored for classification tasks.
   - **`opt_params`** (Optional) — Dictionary with key-value arguments for BayesSearchCV. Do not use parameter `cv`, as this is controlled by NeuCo-Bench.
 ---
