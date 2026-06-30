@@ -1,9 +1,7 @@
 import json
 import logging
-import re
-import ast
 from pathlib import Path
-from typing import Optional, Set
+from typing import Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
@@ -40,9 +38,9 @@ def load_submission(
     file_path: Path,
     valid_ids: Set[str],
     expected_dim: int | None = None,
-    exclude_file: Optional[Path] = None,
+    exclude_file: Path | None = None,
     standardize: bool = True,
-) -> (pd.DataFrame, int):
+) -> Tuple[pd.DataFrame, int]:
     """
     Load and preprocess CSV of embeddings.
 

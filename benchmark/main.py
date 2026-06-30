@@ -5,6 +5,7 @@ import yaml
 
 from evaluation.evaluation import evaluate
 from evaluation.results import summarize_runs
+from evaluation.config import check_config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,6 +29,9 @@ def main():
 
     with args.config.open() as f:
         config = yaml.safe_load(f)
+    
+    # Check config
+    check_config(config)
 
     evaluate(
             submission_file=args.submission_file,

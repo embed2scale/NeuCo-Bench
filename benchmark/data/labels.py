@@ -27,6 +27,7 @@ def get_annotations(folder_path: Union[str, Path]) -> pd.DataFrame:
     
     for csv_path in folder.glob("*.csv"):
         task_name, task_type = csv_path.stem.split("__", 1)
+        prev_len = len(entries)
         with csv_path.open(newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
@@ -40,7 +41,7 @@ def get_annotations(folder_path: Union[str, Path]) -> pd.DataFrame:
                     'task_name': task_name,
                     'task_type': task_type,
                 })
-        logger.info("Processed %s: %d valid entries", csv_path.name, len(entries))
+        logger.info("Processed %s: %d valid entries (%d total)", csv_path.name, len(entries) - prev_len, len(entries))
 
     if sorted_out:
         logger.warning("Skipped %d rows due to missing labels", sorted_out)

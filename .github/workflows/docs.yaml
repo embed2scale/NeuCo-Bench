@@ -17,6 +17,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Do not try to build documentation from forks
+    if: github.event.repository.fork == false
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +42,8 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    # Do not try to deploy documentation from forks
+    if: github.event.repository.fork == false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

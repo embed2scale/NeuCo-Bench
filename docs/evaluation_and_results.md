@@ -64,23 +64,36 @@ NeuCo-Bench applies a task-wise linear‑probing workflow.
 
 ## Configuration
 
-A reference config is provided in `configs/sample_config.yaml`. The following options control the evaluation pipeline.
+Reference configs are provided in `configs/`. The following options control the evaluation pipeline.
 
 ### Required Parameters
-- **`batch_size`** — Batch size for linear probes
-- **`epochs`** — Training epochs
-- **`learning_rate`** — Optimizer learning rate
-- **`k_folds`** — Number of cross‑validation folds
+- **`k_folds`** — Number of ShuffleSplit folds for score aggregation.
+- **`probe_type`** — Type of probe to use.
+- **`probe_params`** - Key-value parameters for the probe. See below for details.
 
 ### Optional Parameters
-- **`embedding_dim`** — Expected embedding size; smaller vectors are zero‑padded.
-- **`standardize_embeddings`** — Standardize embeddings using global mean/std.
+- **`embedding_dim`** — Expected embedding size; smaller vectors are zero‑padded. Default is to infer from data.
+- **`standardize_embeddings`** — Standardize embeddings using global mean/std. Default
 - **`normalize_labels`** — Normalize regression labels to `[0, 1]`.
 - **`enable_plots`** — Save loss curves and task‑specific plots.
 - **`task_filter`** — Specify tasks to evaluate (defaults to all available).
 - **`update_leaderboard`** — Aggregate results across runs.
-- **`output_fold_results`** — Also store per-fold metrics in the result JSON.
+- **`output_fold_results`** — Also store per-fold metrics in the result JSON. Default is False.
+- **`store_probes`** — Store probe from each task. Default is False. Retrains the model on all task data, using the best hyperparameters if HP optimization is done, before storing the model. Stored under `probe` in the result folder.
 
+#### Probe parameters
+- **`probe_params`** (**`probe_type = linear`**)
+  - **`batch_size`** (Required) — Batch size for linear probes.
+  - **`epochs`** (Required) — Number of epochs.
+  - **`learning_rate`** (Required) — Optimizer learning rate.
+  - **`device`** (Optional) — Device to train probe on. Either `gpu`, `cpu` or `auto`. Default is "auto", which picks GPU if it exists and otherwise CPU.
+- **`probe_params`** (**`probe_type = svm`**)
+  - **`C_start_end`** (Required) — List of min, max values for C parameter in hyperparameter optimization.
+  - **`kernel_degree_list`** (Required) — Integer or list of values for degree parameter. Note that **`kernel_coef0_start_end`** nor **`kernel_gamma_start_end`** cannot be used if 1 is in **`kernel_degree_list`** as it messes with the optimization.
+  - **`kernel_coef0_start_end`** (optional) List of min, max values for coef0 parameter in hyperparameter optimization. Note that **`kernel_coef0_start_end`** cannot be used if 1 is in **`kernel_degree_list`**, see **`kernel_degree_list`**.
+  - **`kernel_gamma_start_end`** (Optional) — List of min, max values for gamma parameter. Note that **`kernel_gamma_start_end`** cannot be used if 1 is in **`kernel_degree_list`**, see **`kernel_degree_list`**.
+  - **`epsilon_list`** (Optional) — List of values for epsilon hyperparameter in Suppoert vector regression problems. Ignored for classification tasks.
+  - **`opt_params`** (Optional) — Dictionary with key-value arguments for BayesSearchCV. Do not use parameter `cv`, as this is controlled by NeuCo-Bench.
 ---
 
 ## Q-Score
@@ -157,4 +170,29 @@ task_filter:
 ```yaml
 standardize_embeddings: false
 normalize_labels: false
+```
+
+### Working with stored probes
+
+The stored probes are provided with a self-contained load script to simplify use.
+Below is a minimal example to access the trained probe:
+```python
+import importlib
+from pathlib import Path
+import sys
+
+probe_folder = Path("/path/to/task/results/phase_name/method_name/task_name/probe/")
+
+# Import the load_probe functionality
+spec=importlib.util.spec_from_file_location("load_probe", probe_folder / "load_probe.py")
+
+# creates a new module based on spec
+load_probe = importlib.util.module_from_spec(spec, )
+
+# instantiate module
+sys.modules[spec.name] = load_probe 
+spec.loader.exec_module(load_probe)
+
+# Load trained probe
+probe, task_type = load_probe.load_probe(probe_folder)
 ```
