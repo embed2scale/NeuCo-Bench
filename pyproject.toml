@@ -5,31 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "neucobench"
 version = "1.1.0"
-description = "NeuCo-Bench benchmark suite for evaluating compressed embeddings on downstream tasks."
+description = "NeuCo-Bench benchmark suite for evaluating compressed embeddings on Earth observation tasks."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "Apache-2.0" }
 authors = [
-  { name = "embed2scale" }
+    { name = "Isabelle Wittmann" },
+    { name = "Rikard Vinge" },
+    { name = "Conrad M Albrecht" },
 ]
-dependencies = [
-  "matplotlib",
-  "numcodecs",
-  "numpy",
-  "pandas",
-  "PyYAML",
-  "scikit-learn",
-  "scikit-optimize",
-  "scipy",
-  "timm",
-  "torch",
-  "torchgeo",
-  "torchmetrics",
-  "torchvision",
-  "tqdm",
-  "xarray",
-  "zarr",
-]
+
+dynamic = ["dependencies"]
 
 [project.scripts]
 neuco-bench = "main:main"
@@ -41,3 +27,6 @@ py-modules = ["main"]
 [tool.setuptools.packages.find]
 where = ["benchmark"]
 include = ["data*", "evaluation*"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
