@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neucobench"
+version = "1.1.0"
+description = "NeuCo-Bench benchmark suite for evaluating compressed embeddings on downstream tasks."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "embed2scale" }
+]
+dependencies = [
+  "matplotlib",
+  "numcodecs",
+  "numpy",
+  "pandas",
+  "PyYAML",
+  "scikit-learn",
+  "scikit-optimize",
+  "scipy",
+  "timm",
+  "torch",
+  "torchgeo",
+  "torchmetrics",
+  "torchvision",
+  "tqdm",
+  "xarray",
+  "zarr",
+]
+
+[project.scripts]
+neuco-bench = "main:main"
+
+[tool.setuptools]
+package-dir = { "" = "benchmark" }
+py-modules = ["main"]
+
+[tool.setuptools.packages.find]
+where = ["benchmark"]
+include = ["data*", "evaluation*"]
