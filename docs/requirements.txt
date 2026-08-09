@@ -1,0 +1,4 @@
+# Dependencies for building the NeuCo-Bench documentation site.
+# Used by .github/workflows/docs.yaml.
+mkdocs>=1.6.1,<2.0
+mkdocs-material>=9.7.7,<10.0

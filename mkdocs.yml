@@ -13,8 +13,11 @@ theme:
     - navigation.instant
     - navigation.instant.prefetch
     - navigation.instant.progress
+    - navigation.top
     - search.highlight
     - search.suggest
+    - content.code.copy
+    - toc.follow
 
 nav:
   - Overview: index.md
@@ -25,6 +28,17 @@ nav:
 
 plugins:
   - search
+
+# Build-only file, not site content
+exclude_docs: |
+  requirements.txt
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - toc:
+      permalink: true
 
 copyright: Copyright &copy; 2026 Embed2Scale
 

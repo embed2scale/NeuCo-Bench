@@ -45,22 +45,18 @@ cd NeuCo-Bench/benchmark
 pip install -r ../requirements.txt
 
 # run evaluation
-python main.py   
---annotation_path path/to/annotation_folder   
---submission_file path/to/submission_file.csv   
---output_dir path/to/results   
---config path/to/config.yaml   
---method_name your-method-name   
+python main.py \
+  --annotation_path path/to/annotation_folder \
+  --submission_file path/to/submission_file.csv \
+  --output_dir path/to/results \
+  --config path/to/config.yaml \
+  --method_name your-method-name
 ```
 
-**Arguments:**
-- `annotation_path` — Directory with task label files.  
-- `submission_file` — Your embeddings (CSV).  
-- `output_dir` — Destination folder for metrics, plots, and summaries.  
-- `config` — YAML with CV settings and preprocessing options.  
-- `method_name` — Name used in result folders and leaderboard.  
+Only `--annotation_path` and `--submission_file` are required. For the full argument list, configuration options, and output layout, see [Evaluation & Results](evaluation_and_results.md).
 
-To force CPU execution:
-```
-CUDA_VISIBLE_DEVICES=""
+To force CPU execution, set the following before running:
+
+```bash
+export CUDA_VISIBLE_DEVICES=""
 ```

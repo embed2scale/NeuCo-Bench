@@ -14,7 +14,7 @@ You can help improve the project in many ways, for example:
 
 If you are planning a larger change, we recommend opening a GitHub issue first to discuss your idea.
 
-For the technical contribution workflow (forking, branching, pull requests, coding standards), please see our GitHub contributing guide [GitHub Contributing Guide](https://github.com/embed2scale/NeuCo-Bench/blob/main/.github/CONTRIBUTING.md).
+For the technical contribution workflow (forking, branching, pull requests, coding standards), please see our [GitHub Contributing Guide](https://github.com/embed2scale/NeuCo-Bench/blob/main/.github/CONTRIBUTING.md).
 
 ## Data and Task Contributions
 

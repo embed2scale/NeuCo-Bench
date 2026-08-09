@@ -10,16 +10,16 @@ Beyond this setup, NeuCo-Bench is extendable: you can add custom tasks for your 
 
 The SSL4EO-S12-Downstream dataset is the reference dataset released with NeuCo-Bench and is subject to extensions with new tasks. Many of the available tasks were used in the CVPR 2025 EarthVision challenge. It provides raw data and labels ready to use with the NeuCo-Bench evaluation code.
 
-To get started, download the data from [Hugging Face repository](https//huggingface.co/datasets/embed2scale/SSL4EO-S12-downstream).
+To get started, download the data from [Hugging Face repository](https://huggingface.co/datasets/embed2scale/SSL4EO-S12-downstream).
 
 The dataset is structured into input imagery under `data/` and task annotations under `labels/`.
 
-```
+```text
 SSL4EO-S12-downstream/
 ├── data/
 │   ├── s1/               # Sentinel-1 (SAR) imagery
 │   │   └── part-000000   # 1000 zarr.zip files
-            └── <id>.zarr.zip
+│   │       └── <id>.zarr.zip
 │   ├── s2l1c/            # Sentinel-2 L1C (top-of-atmosphere)
 │   └── s2l2a/            # Sentinel-2 L2A (surface reflectance)
 ├── labels/
@@ -29,7 +29,9 @@ SSL4EO-S12-downstream/
 └── README.md
 ```
 
-It currently contains over 13k multi-modal, multi-season datacubes (Sentinel-1, Sentinel-2 L1C, Sentinel-2 L2A) with labels for 11 regression and classification tasks. 
+It currently contains over 13k multi-modal, multi-season datacubes (Sentinel-1, Sentinel-2 L1C, Sentinel-2 L2A) with labels for 11 regression and classification tasks.
+
+Each label file is named `<task_name>__<task_type>.csv`. The part before `__` is the task name used by `task_filter` in the config; the part after is the task type (`classification` or `regression`). To see the exact task names available in your download, list the `labels/` folder — the file stems are the strings to pass to `task_filter`.
 
 The data format aligns with [SSL4EOS12 v1.1](https://github.com/DLR-MF-DAS/SSL4EO-S12-v1.1), which is recommended as a pretraining dataset for learned embedding methods. For more details, see the [Hugging Face repository](https://huggingface.co/datasets/embed2scale/SSL4EO-S12-downstream).  
 
@@ -48,7 +50,8 @@ It supports:
 
 ### Labels
 
-Labels are provdied as single csv files per task: `<task_name>__<task_type>.csv`
+Labels are provided as single csv files per task: `<task_name>__<task_type>.csv`
 - They require the columns: `id` and `label`
 - Rows with missing labels are skipped
+- The `id` values must match the `id` column of your embeddings CSV. Embedding IDs are compared after stripping `.zarr` / `.zarr.zip` suffixes, so `<id>.zarr.zip` in the embeddings matches `<id>` in the labels. Only samples present in both files are evaluated (see [Generate Embeddings](embedding_generation.md)).
 
