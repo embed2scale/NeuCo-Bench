@@ -54,8 +54,11 @@ python main.py \
 - `--config` YAML file specifying cross-validation settings and logging options (see provided sample).  
 - `--method_name` Identifier for your method used in filenames and leaderboard entries.  
 - `--phase` Groups evaluation runs under a specified phase name for ranking, creating a subfolder within `output_dir`. 
+- `--exclude_file` Optional text file listing embedding IDs to drop before evaluation, one per line.
 
-To disable GPU utilization, run `CUDA_VISIBLE_DEVICES=''` before execution.
+Only `--annotation_path` and `--submission_file` are required. Alternatively, `pip install .` provides a `neuco-bench` command that takes the same arguments and can be run from any directory.
+
+To disable GPU utilization, run `export CUDA_VISIBLE_DEVICES=''` before execution.
 
 ---
 
@@ -82,7 +85,7 @@ Generate embeddings for SSL4EO-S12-downstream or your custom data and save them 
 
 For size-constrained benchmarking, all methods should use the same embedding dimension limit (e.g. 1024 during the CVPR 2025 EarthVision challenge). 
 A selection of reference CSV files from the challenge is available in the repository’s top-level `data/` directory (see `data/README.md`). The `data/` folder is tracked by Git LFS to keep initial clones of this repo slim. If you like to download the approx. 500 MB of embeddings, utilize:
-```Bash
+```bash
 git lfs install
 git pull
 ```
@@ -101,21 +104,24 @@ python main.py \
   --submission_file path/to/submission_file.csv \
   --output_dir path/to/results \
   --config path/to/config.yaml \
-  --method_name "your-method-name" \
+  --method_name "your-method-name"
 ```
 
 See the full guide in the [Evaluation docs](https://embed2scale.github.io/NeuCo-Bench/evaluation_and_results).
 
 **Configuration File**
 
-Key options (see `configs/sample_config.yaml`):
-- `batch_size`, `epochs`, `learning_rate`, `k_folds`: Cross-validation + training settings
+Key options (see `configs/sample_config_linear.yaml` and `configs/sample_config_svm.yaml`):
+- `k_folds`: number of cross-validation splits
+- `probe_type`: `linear` or `svm`
+- `probe_params`: probe settings, e.g. `batch_size`, `epochs`, `learning_rate` for the linear probe
+- `update_leaderboard`: aggregate and rank runs
 - `embedding_dim`: optional size limit (smaller embeddings are padded)
 - `standardize_embeddings`: standardize embeddings (recommended)
 - `normalize_labels`: normalize labels to `[0,1]` (recommended)
 - `enable_plots`: save loss curves + diagnostic plots
 - `task_filter`: evaluate selected tasks only
-- `update_leaderboard`: aggregate and rank runs
+- `store_probes`: save the trained probe per task
 
 **Results**
 
@@ -126,7 +132,7 @@ output_dir/<phase>/<method>_<timestamp>/
 Including:
 - per‑task metrics + optional plots
 - per‑task JSON files (`mean_score`, `std_dev`, `q_stat`)
-- run‑level summary (`run_summary.json`)
+- run‑level summary (`results_summary.json`)
 
 **Leaderboard Aggregation**
 
