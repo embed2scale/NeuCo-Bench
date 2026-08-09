@@ -11,7 +11,12 @@ We provide example scripts in `generate_embeddings/` that illustrate the require
 
 You can also use the [TerraTorch Embedding Generation Task](https://github.com/terrastackai/terratorch/tree/main/examples/embeddings) to export embeddings in the required CSV format by setting the output format to `neuco_csv`.
 
-As a reference, we provide a selection of CSV files from the CVPR 2025 EarthVision challenge in the repository’s top-level `data/` directory (see `data/README.md`).
+As a reference, we provide a selection of CSV files from the CVPR 2025 EarthVision challenge in the repository’s top-level `data/` directory (see `data/README.md`). This folder is tracked by Git LFS to keep clones slim, so a plain `git clone` leaves pointer files instead of the actual CSVs. To fetch the approx. 500 MB of embeddings:
+
+```bash
+git lfs install
+git pull
+```
 
 ---
 
