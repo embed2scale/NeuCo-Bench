@@ -3,7 +3,7 @@
 [![Docs](https://img.shields.io/badge/docs-MkDocs-526CFE?logo=materialformkdocs&logoColor=fff)](https://embed2scale.github.io/NeuCo-Bench/)  
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-**TL;DR**: *Originally developed to evaluate challenge submissions for the 2025 EARTHVISION Challenge at CVPR ([competition details](https://www.grss-ieee.org/events/earthvision-2025/?tab=challenge)), NeuCo-Bench is now released for local benchmarking and evaluation - additional tech details in [the NeuCo-Bench paper](https://openaccess.thecvf.com/content/CVPR2026W/EarthVision/html/Vinge_NeuCo-Bench_A_Novel_Benchmark_Framework_for_Neural_Embeddings_in_Earth_CVPRW_2026_paper.html).*
+**TL;DR**: *Originally developed to evaluate challenge submissions for the 2025 EARTHVISION Challenge at CVPR ([competition details](https://www.grss-ieee.org/events/earthvision-2025/?tab=challenge)), NeuCo-Bench is now released for local benchmarking and evaluation - additional tech details in [the NeuCo-Bench paper](https://openaccess.thecvf.com/content/CVPR2026W/EarthVision/html/Vinge_NeuCo-Bench_A_Novel_Benchmark_Framework_for_Neural_Embeddings_in_Earth_CVPRW_2026_paper.html).* - and if you'd like to dive deeper, tutorial-style, get your feet wet and hands dirty by the corresponding [2026 IGARSS tutorial notebook](https://github.com/embed2scale/2026-igarss-tutorial-on-geospatial-neural-compression/blob/main/Code_20260803_Albrecht_IGARSS-NeuCo-BenchTutorial.ipynb) notebook.
 
 ---
 
